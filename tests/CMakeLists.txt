@@ -16,7 +16,13 @@ macro(greenboy_add_test TESTNAME)
     add_executable(${TESTNAME} ${ARGN})
     # link the Google test infrastructure, mocking library, and a default main fuction to
     # the test executable.  Remove g_test_main if writing your own main function.
-    target_link_libraries(${TESTNAME} Greenboy gtest gmock gtest_main)
+    
+    if(GREENBOY_COVERAGE)
+        target_compile_options(${TESTNAME} PRIVATE --coverage)
+        target_link_libraries(${TESTNAME} Greenboy gtest gmock gtest_main PRIVATE --coverage)
+    else()
+        target_link_libraries(${TESTNAME} Greenboy gtest gmock gtest_main)
+    endif()
     # gtest_discover_tests replaces gtest_add_tests,
     # see https://cmake.org/cmake/help/v3.10/module/GoogleTest.html for more options to pass to it
     gtest_discover_tests(${TESTNAME}

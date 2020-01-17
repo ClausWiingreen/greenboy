@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(Greenboy)
+option(GREENBOY_TESTS "Build the tests for the greenboy emulator" ON)
+option(GREENBOY_COVERAGE "Generate coverage result" OFF)
 
 add_library(Greenboy
   src/greenboy/cpu.cpp
@@ -13,7 +15,6 @@ target_include_directories(Greenboy
     include
 )
 
-option(GREENBOY_TESTS "Build the tests for the greenboy emulator" ON)
 if(GREENBOY_TESTS)
   enable_testing()
   include(GoogleTest)
