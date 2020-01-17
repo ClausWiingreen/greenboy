@@ -4,6 +4,7 @@ compiler: gcc
 install: pip install --user cpp-coveralls
 before_script:
   - mkdir build && cd build
-  - cmake ..
+  - cmake --DCOVERAGE ..
 script: make && make test
-after_success: coveralls --exclude external --exclude tests
+after_success: coveralls --root .. --exclude build
+
