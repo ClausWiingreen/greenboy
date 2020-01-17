@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.10)
 project(Greenboy)
 
 add_library(Greenboy
+  src/greenboy/cpu.cpp
   src/greenboy/gameboy.cpp
+  src/greenboy/timing.cpp
 )
 
 target_include_directories(Greenboy
