@@ -1,10 +1,13 @@
 language: cpp
 dist: bionic
 compiler: gcc
+branches:
+  only:
+    - develop
+    - master
 install: pip install --user cpp-coveralls
 before_script:
   - mkdir build && cd build
   - cmake --DCOVERAGE ..
 script: make && make test
 after_success: coveralls --root .. --exclude build
-

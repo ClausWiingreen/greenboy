@@ -2,4 +2,3 @@
 namespace greenboy{
 class Gameboy { };  
 }
-
