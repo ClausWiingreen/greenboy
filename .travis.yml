@@ -8,6 +8,6 @@ branches:
 install: pip install --user cpp-coveralls
 before_script:
   - mkdir build && cd build
-  - cmake --DGREENBOY_COVERAGE=1 ..
+  - cmake -DGREENBOY_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug ..
 script: make && make test
-after_success: coveralls --root .. --exclude build
+after_success: coveralls --root .. --exclude build --exclude external --exclude cmake
