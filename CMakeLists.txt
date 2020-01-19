@@ -4,6 +4,8 @@ project(Greenboy)
 option(GREENBOY_TESTS "Build the tests for the greenboy emulator" ON)
 option(GREENBOY_COVERAGE "Generate coverage result" OFF)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 add_library(Greenboy
   src/greenboy/cpu.cpp
   src/greenboy/gameboy.cpp
@@ -16,8 +18,8 @@ target_include_directories(Greenboy
 )
 
 if(GREENBOY_COVERAGE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+  message(STATUS "Creating a coverage build")
+  include(CodeCoverage)
 endif()
 
 if(GREENBOY_TESTS)

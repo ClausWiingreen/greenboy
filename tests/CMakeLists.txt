@@ -18,8 +18,7 @@ macro(greenboy_add_test TESTNAME)
     # the test executable.  Remove g_test_main if writing your own main function.
     
     if(GREENBOY_COVERAGE)
-        target_compile_options(${TESTNAME} PRIVATE --coverage)
-        target_link_libraries(${TESTNAME} Greenboy gtest gmock gtest_main PRIVATE --coverage)
+        target_link_libraries(${TESTNAME}  Greenboy gtest gmock gtest_main --coverage)
     else()
         target_link_libraries(${TESTNAME} Greenboy gtest gmock gtest_main)
     endif()
