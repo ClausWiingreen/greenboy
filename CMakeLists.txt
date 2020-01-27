@@ -17,6 +17,16 @@ target_include_directories(Greenboy
     include
 )
 
+find_package(Doxygen
+             REQUIRED dot
+             OPTIONAL_COMPONENTS mscgen dia)
+set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
+set(DOXYGEN_WARN_NO_PARAMDOC YES)
+doxygen_add_docs(docs 
+  "include/"
+  "src/"
+)
+
 if(GREENBOY_COVERAGE)
   message(STATUS "Creating a coverage build")
   include(CodeCoverage)
