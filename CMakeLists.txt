@@ -20,6 +20,7 @@ target_include_directories(Greenboy
 if(GREENBOY_COVERAGE)
   message(STATUS "Creating a coverage build")
   include(CodeCoverage)
+  append_coverage_compiler_flags()
 endif()
 
 if(GREENBOY_TESTS)

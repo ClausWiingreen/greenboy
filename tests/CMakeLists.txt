@@ -17,20 +17,26 @@ macro(greenboy_add_test TESTNAME)
     # link the Google test infrastructure, mocking library, and a default main fuction to
     # the test executable.  Remove g_test_main if writing your own main function.
     
-    if(GREENBOY_COVERAGE)
-        target_link_libraries(${TESTNAME}  Greenboy gtest gmock gtest_main --coverage)
-    else()
-        target_link_libraries(${TESTNAME} Greenboy gtest gmock gtest_main)
-    endif()
+    target_link_libraries(${TESTNAME} Greenboy gtest gmock gtest_main)
+    
     # gtest_discover_tests replaces gtest_add_tests,
     # see https://cmake.org/cmake/help/v3.10/module/GoogleTest.html for more options to pass to it
     gtest_discover_tests(${TESTNAME}
-        # set a working directory so your project root so that you can find test data via paths relative to the project root
-        WORKING_DIRECTORY ${PROJECT_DIR}
-        PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
+    # set a working directory so your project root so that you can find test data via paths relative to the project root
+    WORKING_DIRECTORY ${PROJECT_DIR}
+    PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
     )
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 endmacro()
 
 greenboy_add_test(Gameboy greenboy/gameboy.cpp)
+
+if(GREENBOY_COVERAGE)
+    setup_target_for_coverage_lcov(
+        NAME coverage 
+        EXECUTABLE ctest 
+        DEPENDENCIES Gameboy
+        EXCLUDE googlemock/* googletest/*
+    )
+endif()
 
