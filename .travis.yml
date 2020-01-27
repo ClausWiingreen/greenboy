@@ -1,11 +1,14 @@
 language: cpp
 dist: bionic
+sudo: required
 compiler: gcc
 branches:
   only:
     - develop
     - master
-install: pip install --user cpp-coveralls
+install: 
+  - pip install --user cpp-coveralls
+  - sudo apt install lcov
 before_script:
   - mkdir build && cd build
   - cmake -DGREENBOY_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug ..
