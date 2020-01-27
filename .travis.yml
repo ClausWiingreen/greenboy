@@ -6,9 +6,15 @@ branches:
   only:
     - develop
     - master
+addons:
+  apt:
+    packages:
+      - lcov
+  pip:
+    packages:
+      - cpp-coveralls
 install: 
   - pip install --user cpp-coveralls
-  - sudo apt install lcov
 before_script:
   - mkdir build && cd build
   - cmake -DGREENBOY_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug ..
