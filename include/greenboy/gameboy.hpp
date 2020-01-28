@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "cpu.hpp"
+#include "video.hpp"
 
 namespace greenboy {
 /**
@@ -9,6 +10,7 @@ namespace greenboy {
  */
 class Gameboy {
   std::unique_ptr<CPU> m_cpu;
+  std::unique_ptr<Video> m_video;
 
 public:
   /**
@@ -16,8 +18,9 @@ public:
    * It provides opertunities for dependency injection.
    * 
    * \param cpu A pointer to an instance of the CPU interface.
+   * \param video A pointer to an instance of the Video interface.
    */
-  explicit Gameboy(std::unique_ptr<CPU> cpu);
+  Gameboy(std::unique_ptr<CPU> cpu, std::unique_ptr<Video> video);
 
   /**
    * Advance the emulation by the smallest step possible.
