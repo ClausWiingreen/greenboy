@@ -10,6 +10,7 @@ add_library(Greenboy
   src/greenboy/cpu.cpp
   src/greenboy/gameboy.cpp
   src/greenboy/timing.cpp
+  src/greenboy/video.cpp
 )
 
 target_include_directories(Greenboy
