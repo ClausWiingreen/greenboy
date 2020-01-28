@@ -1,13 +1,20 @@
 language: cpp
 dist: bionic
+sudo: required
 compiler: gcc
 branches:
   only:
     - develop
     - master
-install: pip install --user cpp-coveralls
+addons:
+  apt:
+    packages:
+      - lcov
+install: 
+  - pip install --user cpp-coveralls
+  - gem install coveralls-lcov
 before_script:
   - mkdir build && cd build
-  - cmake --DCOVERAGE ..
-script: make && make test
-after_success: coveralls --root .. --exclude build
+  - cmake -DGREENBOY_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug ..
+script: make coverage
+after_success: coveralls-lcov coverage.info
