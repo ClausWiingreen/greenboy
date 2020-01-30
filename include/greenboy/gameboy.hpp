@@ -9,8 +9,8 @@ namespace greenboy {
  * the interface between user and core emulator.
  */
 class Gameboy {
-  std::unique_ptr<CPU> m_cpu;
-  std::unique_ptr<Video> m_video;
+  const std::unique_ptr<CPU> m_cpu;
+  const std::unique_ptr<Video> m_video;
 
 public:
   /**
