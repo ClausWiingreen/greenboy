@@ -32,7 +32,7 @@ TEST(GameboyCtor, AcceptedConfiguration) {
   EXPECT_NO_THROW(Gameboy(std::move(cpu), std::move(video)));
 }
 
-TEST(Step, CallsCPUUpdate) {
+TEST(GameboyStep, CallsCPUUpdate) {
   auto cpu = std::make_unique<MockCPU>();
   auto video = std::make_unique<MockVideo>();
 
@@ -43,7 +43,7 @@ TEST(Step, CallsCPUUpdate) {
   gameboy.step();
 }
 
-TEST(Step, CallsVideoAdvance) {
+TEST(GameboyStep, CallsVideoAdvance) {
   auto cpu = std::make_unique<MockCPU>();
   auto video = std::make_unique<MockVideo>();
 

@@ -10,7 +10,8 @@ class CPU {
 public:
   virtual ~CPU() = default;
 
-  /**Updates the state of the CPU.
+  /**
+   * Updates the state of the CPU.
    *
    * @return the amount of clock cycles spent
    */
