@@ -8,6 +8,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 add_library(Greenboy
   src/greenboy/cpu.cpp
+  src/greenboy/fetch_execute_cpu.cpp
   src/greenboy/gameboy.cpp
   src/greenboy/timing.cpp
   src/greenboy/video.cpp
