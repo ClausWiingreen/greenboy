@@ -30,4 +30,3 @@ if(GREENBOY_COVERAGE)
             "*/external/**"
     )
 endif()
-

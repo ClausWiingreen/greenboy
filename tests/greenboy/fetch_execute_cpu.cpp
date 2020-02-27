@@ -5,7 +5,6 @@
 namespace {
 using namespace greenboy;
 using ::testing::_;
-using ::testing::Return;
 
 class MockMemoryBus : public MemoryBus {
 public:
@@ -22,7 +21,7 @@ TEST(FetchExecuteCPUUpdate, FetchesFromMemory) {
   EXPECT_CALL(*memory, read(_));
 
   FetchExecuteCPU cpu{std::move(memory)};
-  
+
   cpu.update();
 }
 
