@@ -22,14 +22,16 @@ TEST(FetchExecuteCPUUpdate, FetchesFromMemory) {
   EXPECT_CALL(*memory, read(_));
 
   FetchExecuteCPU cpu{std::move(memory)};
+  
   cpu.update();
 }
 
-TEST(FetchExecuteCPUUpdate, FetchesFromMemory) {
+TEST(FetchExecuteCPUUpdate, FirstFetchIsFromAddress0) {
   auto memory = std::make_unique<MockMemoryBus>();
-  EXPECT_CALL(*memory, read(_));
+  EXPECT_CALL(*memory, read(toWord(0x0000)));
 
   FetchExecuteCPU cpu{std::move(memory)};
+
   cpu.update();
 }
 } // namespace
