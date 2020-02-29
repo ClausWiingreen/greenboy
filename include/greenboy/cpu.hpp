@@ -8,7 +8,14 @@ namespace greenboy {
  */
 class CPU {
 public:
+  CPU() = default;
+  CPU(const CPU&) = delete;
+  CPU(CPU&&) = delete;
+  
   virtual ~CPU() = default;
+
+  CPU& operator=(const CPU&) = delete;
+  CPU& operator=(CPU&&) = delete;
 
   /**
    * Updates the state of the CPU.

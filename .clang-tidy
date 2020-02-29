@@ -1,1 +1,2 @@
-Checks:          '*'
+Checks:          '*,-llvm-header-guard'
+HeaderFilterRegex: '.*'

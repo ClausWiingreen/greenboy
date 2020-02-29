@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 project(Greenboy)
 option(GREENBOY_TESTS "Build the tests for the greenboy emulator" ON)
 option(GREENBOY_COVERAGE "Generate coverage result" OFF)
+option(GREENBOY_DOCS "Generate doxygen documentation" OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -54,5 +55,5 @@ if(GREENBOY_TESTS)
 endif()
 
 add_custom_target(tidy 
-  clang-tidy -extra-arg="-I${CMAKE_SOURCE_DIR}/include/" ${GREENBOY_SOURCES}
+  clang-tidy -p ${CMAKE_BINARY_DIR} ${GREENBOY_SOURCES}
 )

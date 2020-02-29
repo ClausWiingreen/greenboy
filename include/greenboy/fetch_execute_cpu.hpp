@@ -13,6 +13,13 @@ class FetchExecuteCPU : public CPU {
   std::unique_ptr<MemoryBus> m_memory;
 
 public:
+  /**
+   * The main constructor for the FetchExecuteCPU.
+   * It provides opertunities for dependency injection.
+   * 
+   * \param memory The memory bus to use for reading or writing.
+   * Will throw std::invalid_argument if it is null.
+   */
   explicit FetchExecuteCPU(std::unique_ptr<MemoryBus> memory);
 
   cycles update() override;
