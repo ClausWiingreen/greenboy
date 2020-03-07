@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(Greenboy CXX)
-
+project(Greenboy)
 
 option(GREENBOY_TESTS "Build the tests for the greenboy emulator" ON)
 option(GREENBOY_COVERAGE "Generate coverage result" OFF)
