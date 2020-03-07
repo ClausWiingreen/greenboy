@@ -25,22 +25,28 @@ list(APPEND GREENBOY_SOURCES
   ${CMAKE_SOURCE_DIR}/src/greenboy/video.cpp
 )
 
-find_program(CPPCHECK cppcheck)
-if(CPPCHECK)
-  set(CMAKE_CXX_CPPCHECK ${CPPCHECK}
-    --suppress=missingInclude
-    --enable=all
-    --inconclusive
-  )
-else()
-  message(WARNING "CppCheck was not detected")
+option(ENABLE_CPPCHECK "Enable the CppCheck static analyser" OFF)
+if(ENABLE_CPPCHECK)
+  find_program(CPPCHECK cppcheck)
+  if(CPPCHECK)
+    set(CMAKE_CXX_CPPCHECK ${CPPCHECK}
+      --suppress=missingInclude
+      --enable=all
+      --inconclusive
+    )
+  else()
+    message(WARNING "CppCheck was not detected")
+  endif()
 endif()
 
-find_program(CLANGTIDY clang-tidy)
-if(CLANGTIDY)
-  set(CMAKE_CXX_CLANG_TIDY ${CLANGTIDY})
-else()
-  message(WARNING "ClangTidy was not detected")
+option(ENABLE_CLANGTIDY "Enable the ClangTidy static analyser" OFF)
+if(ENABLE_CLANGTIDY)
+  find_program(CLANGTIDY clang-tidy)
+  if(CLANGTIDY)
+    set(CMAKE_CXX_CLANG_TIDY ${CLANGTIDY})
+  else()
+    message(WARNING "ClangTidy was not detected")
+  endif()
 endif()
 
 add_library(Greenboy
