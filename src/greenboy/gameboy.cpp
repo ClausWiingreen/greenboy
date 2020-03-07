@@ -11,7 +11,7 @@ Gameboy::Gameboy(std::unique_ptr<CPU> cpu, std::unique_ptr<Video> video)
   }
 }
 void Gameboy::step() {
-  auto cycles = m_cpu->update();
-  m_video->advance(cycles);
+  auto time_passed = m_cpu->update();
+  m_video->advance(time_passed);
 }
 } // namespace greenboy
