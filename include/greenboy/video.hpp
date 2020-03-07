@@ -8,7 +8,14 @@ namespace greenboy {
  */
 class Video {
 public:
+  Video() = default;
+  Video(const Video&) = delete;
+  Video(Video&&) = delete;
+
   virtual ~Video() = default;
+  
+  Video& operator=(const Video&) = delete;
+  Video& operator=(Video&&) = delete;
 
   /**
    * Advances the state of the emulation by the number of cycles.
