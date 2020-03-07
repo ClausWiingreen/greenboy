@@ -10,6 +10,13 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include(StandardProjectSettings)
 
+add_library(greenboy_options INTERFACE)
+target_compile_features(greenboy_options INTERFACE cxx_std_17)
+
+add_library(greenboy_warnings INTERFACE)
+include(CompilerWarnings)
+set_warnings(greenboy_warnings)
+
 list(APPEND GREENBOY_SOURCES 
   ${CMAKE_SOURCE_DIR}/src/greenboy/cpu.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/fetch_execute_cpu.cpp
@@ -25,6 +32,11 @@ add_library(Greenboy
 target_include_directories(Greenboy
   PUBLIC
     include
+)
+
+target_link_libraries(Greenboy
+  PRIVATE
+    greenboy_warnings
 )
 
 if(GREENBOY_DOCS)
