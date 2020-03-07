@@ -25,6 +25,30 @@ list(APPEND GREENBOY_SOURCES
   ${CMAKE_SOURCE_DIR}/src/greenboy/video.cpp
 )
 
+option(ENABLE_CPPCHECK "Enable the CppCheck static analyser" OFF)
+if(ENABLE_CPPCHECK)
+  find_program(CPPCHECK cppcheck)
+  if(CPPCHECK)
+    set(CMAKE_CXX_CPPCHECK ${CPPCHECK}
+      --suppress=missingInclude
+      --enable=all
+      --inconclusive
+    )
+  else()
+    message(WARNING "CppCheck was not detected")
+  endif()
+endif()
+
+option(ENABLE_CLANGTIDY "Enable the ClangTidy static analyser" OFF)
+if(ENABLE_CLANGTIDY)
+  find_program(CLANGTIDY clang-tidy)
+  if(CLANGTIDY)
+    set(CMAKE_CXX_CLANG_TIDY ${CLANGTIDY})
+  else()
+    message(WARNING "ClangTidy was not detected")
+  endif()
+endif()
+
 add_library(Greenboy
   ${GREENBOY_SOURCES}
 )
@@ -37,6 +61,7 @@ target_include_directories(Greenboy
 target_link_libraries(Greenboy
   PRIVATE
     greenboy_warnings
+    greenboy_options
 )
 
 if(GREENBOY_DOCS)
@@ -57,6 +82,9 @@ if(GREENBOY_COVERAGE)
   append_coverage_compiler_flags()
 endif()
 
+unset(CMAKE_CXX_CPPCHECK)
+unset(CMAKE_CXX_CLANG_TIDY)
+
 if(GREENBOY_TESTS)
   enable_testing()
   include(GoogleTest)
@@ -68,7 +96,3 @@ if(GREENBOY_TESTS)
   )
   add_subdirectory(tests)
 endif()
-
-add_custom_target(tidy 
-  clang-tidy -p ${CMAKE_BINARY_DIR} ${GREENBOY_SOURCES}
-)
