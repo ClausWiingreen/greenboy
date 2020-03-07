@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(Greenboy)
+project(Greenboy CXX)
+
+
 option(GREENBOY_TESTS "Build the tests for the greenboy emulator" ON)
 option(GREENBOY_COVERAGE "Generate coverage result" OFF)
 option(GREENBOY_DOCS "Generate doxygen documentation" OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+include(StandardProjectSettings)
 
 list(APPEND GREENBOY_SOURCES 
   ${CMAKE_SOURCE_DIR}/src/greenboy/cpu.cpp
