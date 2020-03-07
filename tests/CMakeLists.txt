@@ -20,13 +20,13 @@ greenboy_add_test(Gameboy         greenboy/gameboy.cpp)
 greenboy_add_test(FetchExecuteCPU greenboy/fetch_execute_cpu.cpp)
 
 if(GREENBOY_COVERAGE)
-    setup_target_for_coverage_lcov(
-        NAME coverage 
-        EXECUTABLE ctest 
-        DEPENDENCIES Gameboy
-        LCOV_ARGS 
-          "--no-external"
-        EXCLUDE 
-            "*/external/**"
-    )
+  setup_target_for_coverage_lcov(
+    NAME coverage 
+    EXECUTABLE ctest 
+    DEPENDENCIES 
+      Gameboy 
+      FetchExecuteCPU
+    LCOV_ARGS "--no-external"
+    EXCLUDE "*/external/**"
+  )
 endif()
