@@ -1,2 +1,2 @@
-Checks:          '*,-llvm-header-guard'
+Checks:          '*,-llvm-header-guard,-google-runtime-references'
 HeaderFilterRegex: '.*'
