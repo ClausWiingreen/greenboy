@@ -4,8 +4,13 @@
 #include "timing.hpp"
 
 namespace greenboy {
+/**
+ * @brief an interface for instructions which are performed by the CPU
+ *
+ */
 class Instruction {
 public:
+  //! @cond Doxygen_Suppress
   Instruction() = default;
   Instruction(const Instruction &) = delete;
   Instruction(Instruction &&) = delete;
@@ -14,17 +19,29 @@ public:
 
   Instruction &operator=(const Instruction &) = delete;
   Instruction &operator=(Instruction &&) = delete;
+  //! @endcond
 
-  virtual cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) = 0;
+  /**
+   * @brief executes the instruction
+   *
+   * @param registers the non memorymapped registers which may be modified by
+   * the instruction
+   * @param memory the memory map which may be written to or read from
+   * @return the number of cpu cycles it took to execute this instruction
+   */
+  virtual cycles execute(CPU::RegisterSet &registers,
+                         MemoryBus &memory) const = 0;
 };
 
 namespace instructions {
+/**
+ * @brief a no operation instruction.
+ * advanced the pc by one over 4 cycles.
+ */
 class NOP : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers, MemoryBus & /*memory*/) override {
-    registers.pc++;
-    return cycles{4};
-  };
+  cycles execute(CPU::RegisterSet &registers,
+                 MemoryBus & /*memory*/) const override;
 };
 } // namespace instructions
 } // namespace greenboy

@@ -21,6 +21,8 @@ list(APPEND GREENBOY_SOURCES
   ${CMAKE_SOURCE_DIR}/src/greenboy/cpu.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/fetch_execute_cpu.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/gameboy.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/instruction.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/memory_bus.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/timing.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/video.cpp
 )
