@@ -11,8 +11,8 @@ cycles CALL::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   auto low = memory.read(registers.pc++);
   auto high = memory.read(registers.pc++);
 
-  memory.write(--registers.sp, registers.pc.high());
-  memory.write(--registers.sp, registers.pc.low());
+  memory.write(registers.sp--, registers.pc.high());
+  memory.write(registers.sp--, registers.pc.low());
 
   registers.pc = word(low, high);
   return cycles{24};

@@ -14,7 +14,7 @@ public:
   MOCK_METHOD(void, write, (word, byte), (override));
 };
 
-TEST(NOP, Timing) {
+TEST(Instruction, NOP) {
   CPU::RegisterSet registers{};
   MockMemoryBus memory;
   EXPECT_CALL(memory, read(_)).Times(0);
@@ -27,7 +27,7 @@ TEST(NOP, Timing) {
   EXPECT_EQ(registers, expected_register_state);
 }
 
-TEST(CALL, Timing) {
+TEST(Instruction, CALL) {
   CPU::RegisterSet registers{};
   registers.pc = word{0x0100};
   registers.sp = word{0xfffe};
