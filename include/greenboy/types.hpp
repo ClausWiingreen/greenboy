@@ -3,7 +3,37 @@
 #include <cstdint>
 
 namespace greenboy {
-enum class byte : uint8_t {};
+
+class word;
+
+class byte {
+  uint8_t m_value = 0;
+
+public:
+  constexpr byte() noexcept = default;
+  explicit constexpr byte(int value) noexcept
+      : m_value{static_cast<uint8_t>(value)} {}
+  constexpr byte(const byte &) noexcept = default;
+  constexpr byte(byte &&) noexcept = default;
+
+  ~byte() noexcept = default;
+
+  byte &operator=(const byte &) noexcept = default;
+  byte &operator=(byte &&) noexcept = default;
+
+  constexpr bool operator==(const byte &other) const {
+    return other.m_value == m_value;
+  }
+
+  constexpr bool operator!=(const byte &other) const {
+    return other.m_value != m_value;
+  }
+
+  friend class greenboy::word;
+};
+
+static_assert(sizeof(byte) == 1, "Bytes are required to only be 1 byte long");
+
 class word {
   uint16_t m_value = 0;
 
@@ -12,10 +42,9 @@ public:
   word(const word &) noexcept = default;
   word(word &&) noexcept = default;
   constexpr word(byte low, byte high) noexcept
-      : word{static_cast<int>(low) | static_cast<int>(high) << 8} {}
-  explicit constexpr word(int value) noexcept {
-    m_value = static_cast<uint16_t>(value);
-  }
+      : word{low.m_value | high.m_value << 8} {}
+  explicit constexpr word(int value) noexcept
+      : m_value{static_cast<uint16_t>(value)} {}
 
   ~word() noexcept = default;
 
@@ -56,4 +85,5 @@ public:
 
   constexpr byte low() const { return static_cast<byte>(m_value); }
 };
+static_assert(sizeof(word) == 2, "Words are required to be 2 bytes long");
 } // namespace greenboy

@@ -45,10 +45,12 @@ public:
 };
 
 class CALL : public Instruction {
+public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 class RET : public Instruction {
+public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
