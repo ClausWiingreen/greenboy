@@ -27,6 +27,7 @@ if(GREENBOY_COVERAGE)
     DEPENDENCIES 
       Gameboy 
       FetchExecuteCPU
+      Instructions
     LCOV_ARGS "--no-external"
     EXCLUDE "*/external/**"
   )
