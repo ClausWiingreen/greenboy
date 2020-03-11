@@ -45,4 +45,21 @@ TEST(Instruction, CALL) {
   EXPECT_EQ(time_passed, cycles{24});
   EXPECT_EQ(registers, expected_register_state);
 }
+
+TEST(Instruction, RET) {
+  CPU::RegisterSet registers{};
+  registers.pc = word{0x3020};
+  registers.sp = word{0xfffc};
+  MockMemoryBus memory;
+  EXPECT_CALL(memory, read(word{0xfffe})).WillOnce(Return(byte{0x01}));
+  EXPECT_CALL(memory, read(word{0xfffd})).WillOnce(Return(byte{0x03}));
+
+  auto time_passed = RET{}.execute(registers, memory);
+
+  CPU::RegisterSet expected_register_state;
+  expected_register_state.pc = word{0x0103};
+  expected_register_state.sp = word{0xfffe};
+  EXPECT_EQ(time_passed, cycles{16});
+  EXPECT_EQ(registers, expected_register_state);
+}
 } // namespace
