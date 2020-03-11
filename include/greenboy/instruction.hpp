@@ -43,5 +43,14 @@ public:
   cycles execute(CPU::RegisterSet &registers,
                  MemoryBus & /*memory*/) const override;
 };
+
+class CALL : public Instruction {
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+
+class RET : public Instruction {
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+
 } // namespace instructions
 } // namespace greenboy

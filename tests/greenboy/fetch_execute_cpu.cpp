@@ -34,8 +34,7 @@ TEST(FetchExecuteCPUUpdate, FetchesFromMemory) {
   EXPECT_CALL(*memory, read(_));
   instructions::NOP instruction;
   auto controlUnit = std::make_unique<MockOpcodeTranslator>();
-  EXPECT_CALL(*controlUnit, translate(_))
-      .WillOnce(ReturnRef(instruction));
+  EXPECT_CALL(*controlUnit, translate(_)).WillOnce(ReturnRef(instruction));
 
   FetchExecuteCPU cpu{std::move(memory), std::move(controlUnit)};
 
@@ -44,7 +43,7 @@ TEST(FetchExecuteCPUUpdate, FetchesFromMemory) {
 
 TEST(FetchExecuteCPUUpdate, FirstFetchIsFromAddress0) {
   auto memory = std::make_unique<MockMemoryBus>();
-  EXPECT_CALL(*memory, read(to_word(0x0000)));
+  EXPECT_CALL(*memory, read(word{0x0000}));
   instructions::NOP instruction;
   auto controlUnit = std::make_unique<MockOpcodeTranslator>();
   EXPECT_CALL(*controlUnit, translate(_))
