@@ -2,12 +2,12 @@
 
 namespace greenboy::instructions {
 cycles NOP::execute(CPU::RegisterSet &registers, MemoryBus & /*memory*/) const {
-  registers.pc++;
+  ++registers.pc;
   return cycles{4};
 }
 
 cycles CALL::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  registers.pc++;
+  ++registers.pc;
   auto low = memory.read(registers.pc++);
   auto high = memory.read(registers.pc++);
 
@@ -25,7 +25,7 @@ cycles RET::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
 
 cycles LOAD_HL_n::execute(CPU::RegisterSet &registers,
                           MemoryBus &memory) const {
-  registers.pc++;
+  ++registers.pc;
   memory.write(word(registers.l, registers.h), memory.read(registers.pc++));
   return cycles{12};
 }

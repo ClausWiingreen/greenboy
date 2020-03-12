@@ -42,7 +42,7 @@ public:
   word(const word &) noexcept = default;
   word(word &&) noexcept = default;
   constexpr word(byte low, byte high) noexcept
-      : word{low.m_value | high.m_value << 8} {}
+      : word{low.m_value + (high.m_value << 8u)} {}
   explicit constexpr word(int value) noexcept
       : m_value{static_cast<uint16_t>(value)} {}
 
@@ -81,7 +81,7 @@ public:
     return other.m_value != m_value;
   }
 
-  constexpr byte high() const { return static_cast<byte>(m_value >> 8); }
+  constexpr byte high() const { return static_cast<byte>(m_value >> 8u); }
 
   constexpr byte low() const { return static_cast<byte>(m_value); }
 };

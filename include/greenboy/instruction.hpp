@@ -58,7 +58,7 @@ template <int Address> class RST : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers,
                  MemoryBus &memory) const override {
-    registers.pc++;
+    ++registers.pc;
 
     memory.write(registers.sp--, registers.pc.high());
     memory.write(registers.sp--, registers.pc.low());
@@ -91,7 +91,7 @@ template <R8 To, R8 From> class LOAD_R8_R8 : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers,
                  MemoryBus & /*memory*/) const override {
-    registers.pc++;
+    ++registers.pc;
     reg<To>(registers) = reg<From>(registers);
     return cycles{4};
   }
@@ -101,7 +101,7 @@ template <R8 To> class LOAD_R8_n : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers,
                  MemoryBus &memory) const override {
-    registers.pc++;
+    ++registers.pc;
     reg<To>(registers) = memory.read(registers.pc++);
     return cycles{8};
   }
@@ -111,7 +111,7 @@ template <R8 To> class LOAD_R8_HL : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers,
                  MemoryBus &memory) const override {
-    registers.pc++;
+    ++registers.pc;
     reg<To>(registers) = memory.read(word(registers.l, registers.h));
     return cycles{8};
   }
@@ -121,7 +121,7 @@ template <R8 From> class LOAD_HL_R8 : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers,
                  MemoryBus &memory) const override {
-    registers.pc++;
+    ++registers.pc;
     memory.write(word(registers.l, registers.h), reg<From>(registers));
     return cycles{8};
   }
