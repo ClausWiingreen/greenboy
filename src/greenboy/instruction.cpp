@@ -23,4 +23,11 @@ cycles RET::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   return cycles{16};
 }
 
+cycles LOAD_HL_nn::execute(CPU::RegisterSet &registers,
+                           MemoryBus &memory) const {
+  registers.pc++;
+  memory.write(word(registers.l, registers.h), memory.read(registers.pc++));
+  return cycles{12};
+}
+
 } // namespace greenboy::instructions
