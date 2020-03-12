@@ -38,6 +38,7 @@ function(set_warnings project)
     -Wnull-dereference
     -Wdouble-promotion
     -Wformat=2
+    -Wno-c++17-extensions
   )
   
   if(WARNINGS_AS_ERRORS)

@@ -1,4 +1,7 @@
 #pragma once
+#include <functional>
+#include <utility>
+
 #include "cpu.hpp"
 #include "memory_bus.hpp"
 #include "timing.hpp"
@@ -130,6 +133,31 @@ public:
 class LOAD_HL_n : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+
+enum class R16 { BC, DE, HL };
+
+template <R16 Reg> constexpr auto &reg(CPU::RegisterSet &registers) {
+  switch (Reg) {
+  case R16::BC:
+    return std::make_pair(std::ref(registers.b), std::ref(registers.c));
+  case R16::DE:
+    return std::make_pair(std::ref(registers.d), std::ref(registers.e));
+  case R16::HL:
+    return std::make_pair(std::ref(registers.h), std::ref(registers.l));
+  }
+}
+
+template <R16 To> class LOAD_R16_nn : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 MemoryBus &memory) const override {
+    ++registers.pc;
+    auto [high, low] = reg<To>(registers);
+    low.get() = memory.read(registers.pc++);
+    high.get() = memory.read(registers.pc++);
+    return cycles{12};
+  }
 };
 
 } // namespace instructions
