@@ -75,15 +75,15 @@ template <R8 Reg> constexpr byte &reg(CPU::RegisterSet &registers) {
   case R8::B:
     return registers.b;
   case R8::C:
-    return registers.b;
+    return registers.c;
   case R8::D:
-    return registers.b;
+    return registers.d;
   case R8::E:
-    return registers.b;
+    return registers.e;
   case R8::H:
-    return registers.b;
+    return registers.h;
   case R8::L:
-    return registers.b;
+    return registers.l;
   }
 }
 
@@ -97,7 +97,7 @@ public:
   }
 };
 
-template <R8 To> class LOAD_R8_nn : public Instruction {
+template <R8 To> class LOAD_R8_n : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers,
                  MemoryBus &memory) const override {
@@ -127,7 +127,7 @@ public:
   }
 };
 
-class LOAD_HL_nn : public Instruction {
+class LOAD_HL_n : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
