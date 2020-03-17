@@ -160,5 +160,29 @@ public:
   }
 };
 
+template <int bit, R8 Reg> class SET : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    registers.pc++;
+    registers.pc++;
+
+    reg<Reg>() |= 1 << bit;
+    return cycles{8};
+  }
+};
+
+template <int bit, R8 Reg> class RES : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    registers.pc++;
+    registers.pc++;
+
+    reg<Reg>() &= ~(1 << bit);
+    return cycles{8};
+  }
+};
+
 } // namespace instructions
 } // namespace greenboy
