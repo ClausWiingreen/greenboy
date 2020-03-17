@@ -11,8 +11,7 @@ class byte {
 
 public:
   constexpr byte() noexcept = default;
-  explicit constexpr byte(int value) noexcept
-      : m_value{static_cast<uint8_t>(value)} {}
+  constexpr byte(int value) noexcept : m_value{static_cast<uint8_t>(value)} {}
   constexpr byte(const byte &) noexcept = default;
   constexpr byte(byte &&) noexcept = default;
 
@@ -27,6 +26,24 @@ public:
 
   constexpr bool operator!=(const byte &other) const {
     return other.m_value != m_value;
+  }
+
+  constexpr byte &operator|=(const byte &other) {
+    m_value |= other.m_value;
+    return *this;
+  }
+
+  constexpr byte operator|(const byte &other) {
+    return byte{m_value | other.m_value};
+  }
+
+  constexpr byte &operator&=(const byte &other) {
+    m_value &= other.m_value;
+    return *this;
+  }
+
+  constexpr byte operator&(const byte &other) {
+    return byte{m_value & other.m_value};
   }
 
   friend class greenboy::word;
