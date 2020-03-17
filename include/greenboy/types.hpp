@@ -11,7 +11,8 @@ class byte {
 
 public:
   constexpr byte() noexcept = default;
-  constexpr byte(int value) noexcept : m_value{static_cast<uint8_t>(value)} {}
+  explicit constexpr byte(int value) noexcept
+      : m_value{static_cast<uint8_t>(value)} {}
   constexpr byte(const byte &) noexcept = default;
   constexpr byte(byte &&) noexcept = default;
 
@@ -34,7 +35,7 @@ public:
   }
 
   constexpr byte operator|(const byte &other) const {
-    return m_value | other.m_value;
+    return byte{m_value | other.m_value};
   }
 
   constexpr byte &operator&=(const byte &other) {
@@ -43,7 +44,7 @@ public:
   }
 
   constexpr byte operator&(const byte &other) const {
-    return m_value & other.m_value;
+    return byte{m_value & other.m_value};
   }
 
   constexpr byte &operator^=(const byte &other) {
@@ -52,24 +53,28 @@ public:
   }
 
   constexpr byte operator^(const byte &other) const {
-    return m_value ^ other.m_value;
+    return byte{m_value ^ other.m_value};
   }
 
-  constexpr byte operator<<=(const uint8_t value) {
+  constexpr byte &operator<<=(const uint8_t value) {
     m_value <<= value;
     return *this;
   }
 
-  constexpr byte operator<<(const uint8_t value) const { return m_value << value; }
+  constexpr byte operator<<(const uint8_t value) const {
+    return byte{m_value << value};
+  }
 
-  constexpr byte operator>>=(const uint8_t value) {
+  constexpr byte &operator>>=(const uint8_t value) {
     m_value >>= value;
     return *this;
   }
 
-  constexpr byte operator>>(const uint8_t value) const { return m_value << value; }
+  constexpr byte operator>>(const uint8_t value) const {
+    return byte{m_value << value};
+  }
 
-  constexpr byte operator~() const { return ~m_value; }
+  constexpr byte operator~() const { return byte{~m_value}; }
 
   friend class greenboy::word;
 };

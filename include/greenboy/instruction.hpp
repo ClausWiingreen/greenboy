@@ -160,26 +160,26 @@ public:
   }
 };
 
-template <int bit, R8 Reg> class SET : public Instruction {
+template <unsigned Bit, R8 Reg> class SET : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers,
                  [[maybe_unused]] MemoryBus &memory) const override {
     registers.pc++;
     registers.pc++;
 
-    reg<Reg>(registers) |= 1 << bit;
+    reg<Reg>(registers) |= byte{1u << Bit};
     return cycles{8};
   }
 };
 
-template <int bit, R8 Reg> class RES : public Instruction {
+template <unsigned Bit, R8 Reg> class RES : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers,
                  [[maybe_unused]] MemoryBus &memory) const override {
     registers.pc++;
     registers.pc++;
 
-    reg<Reg>(registers) &= ~(1 << bit);
+    reg<Reg>(registers) &= byte{~(1u << Bit)};
     return cycles{8};
   }
 };
