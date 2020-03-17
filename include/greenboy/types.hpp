@@ -56,12 +56,12 @@ public:
     return byte{m_value ^ other.m_value};
   }
 
-  constexpr byte &operator<<=(int value) {
+  constexpr byte &operator<<=(unsigned value) {
     m_value = static_cast<uint8_t>(m_value << value);
     return *this;
   }
 
-  constexpr byte operator<<(int value) const { return byte{m_value << value}; }
+  constexpr byte operator<<(unsigned value) const { return byte{m_value << value}; }
 
   constexpr byte &operator>>=(const uint8_t value) {
     m_value = static_cast<uint8_t>(m_value >> value);

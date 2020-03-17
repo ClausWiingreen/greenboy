@@ -179,7 +179,7 @@ public:
     registers.pc++;
     registers.pc++;
 
-    reg<Reg>(registers) &= byte{std::static_cast<uint8_t>(~(1u << Bit))};
+    reg<Reg>(registers) &= byte{static_cast<uint8_t>(~(1u << Bit))};
     return cycles{8};
   }
 };
