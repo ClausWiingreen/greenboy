@@ -33,8 +33,8 @@ public:
     return *this;
   }
 
-  constexpr byte operator|(const byte &other) {
-    return byte{m_value | other.m_value};
+  constexpr byte operator|(const byte &other) const {
+    return m_value | other.m_value;
   }
 
   constexpr byte &operator&=(const byte &other) {
@@ -42,9 +42,32 @@ public:
     return *this;
   }
 
-  constexpr byte operator&(const byte &other) {
-    return byte{m_value & other.m_value};
+  constexpr byte operator&(const byte &other) const {
+    return m_value & other.m_value;
   }
+
+  constexpr byte &operator^=(const byte &other) {
+    m_value ^= other.m_value;
+    return *this;
+  }
+
+  constexpr byte operator^(const byte &other) const {
+    return m_value ^ other.m_value;
+  }
+
+  constexpr byte operator<<=(const int value) {
+    m_value <<= value;
+    return *this;
+  }
+
+  constexpr byte operator<<(const int value) const { return m_value << value; }
+
+  constexpr byte operator>>=(const int value) {
+    m_value >>= value;
+    return *this;
+  }
+
+  constexpr byte operator~() const { return ~m_value; }
 
   friend class greenboy::word;
 };
