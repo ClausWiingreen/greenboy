@@ -161,4 +161,36 @@ TEST(Instruction, LOAD_HL_n) {
   EXPECT_EQ(time_passed, cycles{12});
   EXPECT_EQ(registers, expected_register_state);
 }
+
+TEST(Instruction, SET) {
+  CPU::RegisterSet registers{};
+  registers.pc = word{0x3020};
+  registers.b = byte{0x30};
+
+  MockMemoryBus memory;
+
+  auto time_passed = SET<0, R8::B>{}.execute(registers, memory);
+
+  CPU::RegisterSet expected_register_state{};
+  expected_register_state.pc = word{0x3022};
+  expected_register_state.b = byte{0x31};
+  EXPECT_EQ(time_passed, cycles{8});
+  EXPECT_EQ(registers, expected_register_state);
+}
+
+TEST(Instruction, RES) {
+  CPU::RegisterSet registers{};
+  registers.pc = word{0x3020};
+  registers.b = byte{0x31};
+
+  MockMemoryBus memory;
+
+  auto time_passed = RES<0, R8::B>{}.execute(registers, memory);
+
+  CPU::RegisterSet expected_register_state{};
+  expected_register_state.pc = word{0x3022};
+  expected_register_state.b = byte{0x30};
+  EXPECT_EQ(time_passed, cycles{8});
+  EXPECT_EQ(registers, expected_register_state);
+}
 } // namespace

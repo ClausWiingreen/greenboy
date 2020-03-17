@@ -167,7 +167,7 @@ public:
     registers.pc++;
     registers.pc++;
 
-    reg<Reg>() |= 1 << bit;
+    reg<Reg>(registers) |= 1 << bit;
     return cycles{8};
   }
 };
@@ -179,7 +179,7 @@ public:
     registers.pc++;
     registers.pc++;
 
-    reg<Reg>() &= ~(1 << bit);
+    reg<Reg>(registers) &= ~(1 << bit);
     return cycles{8};
   }
 };
