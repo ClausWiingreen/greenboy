@@ -55,17 +55,19 @@ public:
     return m_value ^ other.m_value;
   }
 
-  constexpr byte operator<<=(const int value) {
+  constexpr byte operator<<=(const uint8_t value) {
     m_value <<= value;
     return *this;
   }
 
-  constexpr byte operator<<(const int value) const { return m_value << value; }
+  constexpr byte operator<<(const uint8_t value) const { return m_value << value; }
 
-  constexpr byte operator>>=(const int value) {
+  constexpr byte operator>>=(const uint8_t value) {
     m_value >>= value;
     return *this;
   }
+
+  constexpr byte operator>>(const uint8_t value) const { return m_value << value; }
 
   constexpr byte operator~() const { return ~m_value; }
 
