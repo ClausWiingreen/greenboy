@@ -1,18 +1,34 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
 
 namespace greenboy {
 
 class word;
 
+/**
+ * @brief container for a single 8 bit value
+ *
+ */
 class byte {
   uint8_t m_value = 0;
 
 public:
   constexpr byte() noexcept = default;
-  explicit constexpr byte(int value) noexcept
-      : m_value{static_cast<uint8_t>(value)} {}
+
+  /**
+   * @brief constructs a new byte object which is initialized to the given value
+   *
+   * @tparam IntType the type of the parameter, must be an intergal type
+   * @param value the 8-bit value stored in the byte
+   */
+  template <typename IntType>
+  explicit constexpr byte(IntType value) noexcept
+      : m_value{static_cast<uint8_t>(value)} {
+    static_assert(std::is_integral<IntType>::value,
+                  "IntType must be an integral type");
+  }
   constexpr byte(const byte &) noexcept = default;
   constexpr byte(byte &&) noexcept = default;
 
@@ -61,7 +77,9 @@ public:
     return *this;
   }
 
-  constexpr byte operator<<(unsigned value) const { return byte{m_value << value}; }
+  constexpr byte operator<<(unsigned value) const {
+    return byte{m_value << value};
+  }
 
   constexpr byte &operator>>=(const uint8_t value) {
     m_value = static_cast<uint8_t>(m_value >> value);
@@ -79,6 +97,10 @@ public:
 
 static_assert(sizeof(byte) == 1, "Bytes are required to only be 1 byte long");
 
+/**
+ * @brief container for a 16 bit value
+ *
+ */
 class word {
   uint16_t m_value = 0;
 

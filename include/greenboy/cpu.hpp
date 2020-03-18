@@ -94,11 +94,27 @@ public:
      */
     byte a;
 
+    /**
+     * @brief checks whether the current RegisterSet is equal to the other
+     * RegisterSet
+     *
+     * @param other the other registers to compare with
+     * @return true when all registers are equal
+     * @return false when some registers are not equal
+     */
     constexpr bool operator==(const RegisterSet &other) const {
       return b == other.b && c == other.c && d == other.d && e == other.e &&
              h == other.h && l == other.l && a == other.a;
     }
 
+    /**
+     * @brief checks whether the current RegisterSet is not equal to the other
+     * RegisterSet
+     *
+     * @param other the other registers to compare with
+     * @return true when some registers are not equal
+     * @return false when all registers are equal
+     */
     constexpr bool operator!=(const RegisterSet &other) const {
       return b != other.b || c != other.c || d != other.d || e != other.e ||
              h != other.h || l != other.l || a != other.a;
