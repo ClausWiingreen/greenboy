@@ -230,6 +230,51 @@ public:
 };
 
 /**
+ * @brief Loads the value store at the value in register A into the memory at
+ * the address pointed to by register C + ff00.
+ *
+ */
+class LOAD_C_A : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    ++registers.pc;
+    memory.write(word{registers.c, byte{0xff}}, registers.a);
+    return cycles{8};
+  }
+};
+
+/**
+ * @brief Loads the value store at the memory at the address pointed to by the
+ * immediate value + ff00 into register A.
+ *
+ */
+class LOAD_A_n : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    ++registers.pc;
+    registers.a = memory.read(word{memory.read(registers.pc++), byte{0xff}});
+    return cycles{12};
+  }
+};
+
+/**
+ * @brief Loads the value store at the value in register A into the memory at
+ * the address pointed to by the immediate value + ff00.
+ *
+ */
+class LOAD_n_A : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    ++registers.pc;
+    memory.write(word{memory.read(registers.pc++), byte{0xff}}, registers.a);
+    return cycles{12};
+  }
+};
+
+/**
  * @brief Loads the immediate 8-bit value into the memory at the address pointed
  * to by HL.
  *
