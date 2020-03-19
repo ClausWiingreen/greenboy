@@ -79,7 +79,6 @@ template <R16 Reg> constexpr register_pair reg(CPU::RegisterSet &registers) {
   case R16::HL:
     return register_pair(registers.h, registers.l);
   }
-  throw "";
 }
 
 namespace instructions {
@@ -216,11 +215,37 @@ public:
 };
 
 /**
+ * @brief Loads the value store at the memory at the address pointed to by
+ * register C + ff00 into register A.
+ *
+ */
+class LOAD_A_C : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    ++registers.pc;
+    registers.a = memory.read(word{registers.c, byte{0xff}});
+    return cycles{8};
+  }
+};
+
+/**
  * @brief Loads the immediate 8-bit value into the memory at the address pointed
  * to by HL.
  *
  */
 class LOAD_HL_n : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override;
+};
+
+/**
+ * @brief Loads the address at C + ff00 into register A
+ * to by HL.
+ *
+ */
+class LOAD_A_C : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers,
                  [[maybe_unused]] MemoryBus &memory) const override;
