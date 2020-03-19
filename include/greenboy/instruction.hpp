@@ -241,17 +241,6 @@ public:
 };
 
 /**
- * @brief Loads the address at C + ff00 into register A
- * to by HL.
- *
- */
-class LOAD_A_C : public Instruction {
-public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override;
-};
-
-/**
  * @brief Loads the immediate 16-bit value into the register.
  *
  * @tparam To the register to write to.

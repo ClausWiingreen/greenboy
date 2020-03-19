@@ -215,4 +215,24 @@ TEST(Instruction, LOAD_A_R16) {
   EXPECT_EQ(time_passed, cycles{8});
   EXPECT_EQ(registers, expected_register_state);
 }
+
+TEST(Instruction, LOAD_A_C) {
+  CPU::RegisterSet registers{};
+  registers.pc = word{0x305d};
+  registers.c = byte{0x95};
+  registers.a = byte{0x0a};
+
+  MockMemoryBus memory;
+  EXPECT_CALL(memory, read(word{0xff95})).WillOnce(Return(byte{0x37}));
+
+  auto time_passed = LOAD_A_C{}.execute(registers, memory);
+
+  CPU::RegisterSet expected_register_state{};
+  expected_register_state.pc = word{0x305e};
+  expected_register_state.c = byte{0x95};
+  expected_register_state.a = byte{0x37};
+
+  EXPECT_EQ(time_passed, cycles{8});
+  EXPECT_EQ(registers, expected_register_state);
+}
 } // namespace
