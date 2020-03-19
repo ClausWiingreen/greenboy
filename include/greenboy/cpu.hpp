@@ -95,6 +95,12 @@ public:
     byte a;
 
     /**
+     * @brief The flag register.
+     * 
+     */
+    byte f;
+
+    /**
      * @brief checks whether the current RegisterSet is equal to the other
      * RegisterSet
      *
@@ -104,7 +110,7 @@ public:
      */
     constexpr bool operator==(const RegisterSet &other) const {
       return b == other.b && c == other.c && d == other.d && e == other.e &&
-             h == other.h && l == other.l && a == other.a;
+             h == other.h && l == other.l && a == other.a && f == other.f;
     }
 
     /**
@@ -117,7 +123,7 @@ public:
      */
     constexpr bool operator!=(const RegisterSet &other) const {
       return b != other.b || c != other.c || d != other.d || e != other.e ||
-             h != other.h || l != other.l || a != other.a;
+             h != other.h || l != other.l || a != other.a || f != other.f;
     }
   };
 };
