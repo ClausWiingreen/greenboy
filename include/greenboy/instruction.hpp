@@ -36,6 +36,46 @@ public:
                          [[maybe_unused]] MemoryBus &memory) const = 0;
 };
 
+enum class R8 { B, C, D, E, H, L };
+
+template <R8 Reg> constexpr byte &reg(CPU::RegisterSet &registers) {
+  switch (Reg) {
+  case R8::B:
+    return registers.b;
+  case R8::C:
+    return registers.c;
+  case R8::D:
+    return registers.d;
+  case R8::E:
+    return registers.e;
+  case R8::H:
+    return registers.h;
+  case R8::L:
+    return registers.l;
+  }
+}
+
+enum class R16 { BC, DE, HL };
+
+struct register_pair {
+  byte &high;
+  byte &low;
+
+  constexpr register_pair(byte &high, byte &low) : high(high), low(low) {}
+};
+
+template <R16 Reg> constexpr register_pair reg(CPU::RegisterSet &registers) {
+  switch (Reg) {
+  case R16::BC:
+    return register_pair(registers.b, registers.c);
+  case R16::DE:
+    return register_pair(registers.d, registers.e);
+  case R16::HL:
+    return register_pair(registers.h, registers.l);
+  }
+  throw "";
+}
+
 namespace instructions {
 /**
  * @brief a no operation instruction.
@@ -88,25 +128,6 @@ public:
     return cycles{16};
   }
 };
-
-enum class R8 { B, C, D, E, H, L };
-
-template <R8 Reg> constexpr byte &reg(CPU::RegisterSet &registers) {
-  switch (Reg) {
-  case R8::B:
-    return registers.b;
-  case R8::C:
-    return registers.c;
-  case R8::D:
-    return registers.d;
-  case R8::E:
-    return registers.e;
-  case R8::H:
-    return registers.h;
-  case R8::L:
-    return registers.l;
-  }
-}
 
 /**
  * @brief Loads content of one register into another
@@ -172,6 +193,23 @@ public:
 };
 
 /**
+ * @brief Loads the value store at the memory at the address pointed to by the
+ * 16 bit register into register A.
+ *
+ * @tparam From the register to read from.
+ */
+template <R16 From> class LOAD_A_R16 : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    ++registers.pc;
+    auto word_register = reg<From>(registers);
+    registers.a = memory.read(word{word_register.low, word_register.high});
+    return cycles{8};
+  }
+};
+
+/**
  * @brief Loads the immediate 8-bit value into the memory at the address pointed
  * to by HL.
  *
@@ -181,19 +219,6 @@ public:
   cycles execute(CPU::RegisterSet &registers,
                  [[maybe_unused]] MemoryBus &memory) const override;
 };
-
-enum class R16 { BC, DE, HL };
-
-template <R16 Reg> constexpr auto &reg(CPU::RegisterSet &registers) {
-  switch (Reg) {
-  case R16::BC:
-    return std::make_pair(std::ref(registers.b), std::ref(registers.c));
-  case R16::DE:
-    return std::make_pair(std::ref(registers.d), std::ref(registers.e));
-  case R16::HL:
-    return std::make_pair(std::ref(registers.h), std::ref(registers.l));
-  }
-}
 
 /**
  * @brief Loads the immediate 16-bit value into the register.

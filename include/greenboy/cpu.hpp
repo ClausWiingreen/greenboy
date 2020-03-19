@@ -96,7 +96,8 @@ public:
 
     /**
      * @brief The flag register.
-     * 
+     * Consists of 4 flags that are set or reset according to results of
+     * instruction execution.
      */
     byte f;
 
