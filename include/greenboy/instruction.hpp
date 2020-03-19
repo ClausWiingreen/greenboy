@@ -57,11 +57,17 @@ template <R8 Reg> constexpr byte &reg(CPU::RegisterSet &registers) {
 
 enum class R16 { BC, DE, HL };
 
-struct register_pair {
-  byte &high;
-  byte &low;
+class register_pair {
+  byte &m_high;
+  byte &m_low;
 
-  constexpr register_pair(byte &high, byte &low) : high(high), low(low) {}
+public:
+  constexpr register_pair(byte &high, byte &low) : m_high(high), m_low(low) {}
+
+  constexpr byte &high() { return m_high; }
+  constexpr byte &low() { return m_low; }
+  constexpr const byte &high() const { return m_high; }
+  constexpr const byte &low() const { return m_low; }
 };
 
 template <R16 Reg> constexpr register_pair reg(CPU::RegisterSet &registers) {
@@ -204,7 +210,7 @@ public:
                  [[maybe_unused]] MemoryBus &memory) const override {
     ++registers.pc;
     auto word_register = reg<From>(registers);
-    registers.a = memory.read(word{word_register.low, word_register.high});
+    registers.a = memory.read(word{word_register.low(), word_register.high()});
     return cycles{8};
   }
 };
