@@ -275,6 +275,40 @@ public:
 };
 
 /**
+ * @brief Loads the value store at the memory at the address pointed to by the
+ * immediate word value into register A.
+ *
+ */
+class LOAD_A_nn : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    ++registers.pc;
+    auto low = memory.read(registers.pc++);
+    auto high = memory.read(registers.pc++);
+    registers.a = memory.read(word{low, high});
+    return cycles{16};
+  }
+};
+
+/**
+ * @brief Loads the value store at the value in register A into the memory at
+ * the address pointed to by the immediate word value.
+ *
+ */
+class LOAD_nn_A : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    ++registers.pc;
+    auto low = memory.read(registers.pc++);
+    auto high = memory.read(registers.pc++);
+    memory.write(word{low, high}, registers.a);
+    return cycles{16};
+  }
+};
+
+/**
  * @brief Loads the immediate 8-bit value into the memory at the address pointed
  * to by HL.
  *
