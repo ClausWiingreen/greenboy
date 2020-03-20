@@ -17,6 +17,18 @@ add_library(greenboy_warnings INTERFACE)
 include(CompilerWarnings)
 set_warnings(greenboy_warnings)
 
+list(APPEND GREENBOY_HEADERS
+  ${CMAKE_SOURCE_DIR}/include/greenboy/cpu.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/fetch_execute_cpu.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/gameboy.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/instruction.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/memory_bus.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/opcode_translator.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/timing.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/types.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/video.hpp
+)
+
 list(APPEND GREENBOY_SOURCES 
   ${CMAKE_SOURCE_DIR}/src/greenboy/cpu.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/fetch_execute_cpu.cpp
@@ -55,6 +67,7 @@ endif()
 
 add_library(Greenboy
   ${GREENBOY_SOURCES}
+  ${GREENBOY_HEADERS}
 )
 
 target_include_directories(Greenboy
