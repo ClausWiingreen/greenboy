@@ -215,6 +215,78 @@ public:
 };
 
 /**
+ * @brief Loads the value store at the memory at the address pointed to by HL
+ * into register A and increments HL.
+ */
+class LOAD_A_HLI : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    ++registers.pc;
+    registers.a = memory.read(word{registers.l, registers.h});
+    registers.l++;
+    if (registers.l == byte{0}) {
+      registers.h++;
+    }
+    return cycles{8};
+  }
+};
+
+/**
+ * @brief Loads the value store at the memory at the address pointed to by HL
+ * into register A and increments HL.
+ */
+class LOAD_A_HLD : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    ++registers.pc;
+    registers.a = memory.read(word{registers.l, registers.h});
+    registers.l--;
+    if (registers.l == byte{0xff}) {
+      registers.h--;
+    }
+    return cycles{8};
+  }
+};
+
+/**
+ * @brief Loads the value store at the memory at the address pointed to by HL
+ * into register A and increments HL.
+ */
+class LOAD_HLI_A : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    ++registers.pc;
+    memory.write(word{registers.l, registers.h}, registers.a);
+    registers.l++;
+    if (registers.l == byte{0}) {
+      registers.h++;
+    }
+    return cycles{8};
+  }
+};
+
+/**
+ * @brief Loads the value store at the memory at the address pointed to by HL
+ * into register A and increments HL.
+ */
+class LOAD_HLD_A : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers,
+                 [[maybe_unused]] MemoryBus &memory) const override {
+    ++registers.pc;
+    memory.write(word{registers.l, registers.h}, registers.a);
+    registers.l--;
+    if (registers.l == byte{0xff}) {
+      registers.h--;
+    }
+    return cycles{8};
+  }
+};
+
+/**
  * @brief Loads the value store at the memory at the address pointed to by
  * register C + ff00 into register A.
  *

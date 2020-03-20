@@ -204,6 +204,52 @@ public:
   constexpr byte operator~() const { return byte{~m_value}; }
 
   /**
+   * @brief prefix increment operator increments the byte and returns the value
+   * after the increment
+   *
+   * @return byte the byte after incrementing it
+   */
+  constexpr byte &operator++() {
+    m_value++;
+    return *this;
+  }
+
+  /**
+   * @brief postfix increment operator increments the byte and returns the value
+   * before the increment
+   *
+   * @return const byte the byte before incrementing it
+   */
+  constexpr const byte operator++(int) {
+    byte copy{*this};
+    m_value++;
+    return copy;
+  }
+
+  /**
+   * @brief prefix decrement operator decrements the byte and returns the value
+   * after the decrement
+   *
+   * @return byte the byte after decrementing it
+   */
+  constexpr byte &operator--() {
+    m_value--;
+    return *this;
+  }
+
+  /**
+   * @brief postfix decrement operator decrements the byte and returns the value
+   * before the decrement
+   *
+   * @return const byte the byte before decrementing it
+   */
+  constexpr const byte operator--(int) {
+    byte copy{*this};
+    m_value--;
+    return copy;
+  }
+
+  /**
    * @brief give word access to the inner value for construction
    *
    */
