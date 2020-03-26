@@ -71,7 +71,8 @@ TEST(Instruction, LOAD_R8_R8) {
 
   MockMemoryBus memory;
 
-  auto time_passed = LOAD_R8_R8<R8::B, R8::C>{}.execute(registers, memory);
+  auto time_passed =
+      LOAD_R8_R8{CPU::R8::B, CPU::R8::C}.execute(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x3021};
@@ -91,7 +92,7 @@ TEST(Instruction, LOAD_HL_R8) {
   MockMemoryBus memory;
   EXPECT_CALL(memory, write(word{0x2012}, byte{0x30}));
 
-  auto time_passed = LOAD_HL_R8<R8::B>{}.execute(registers, memory);
+  auto time_passed = LOAD_HL_R8{CPU::R8::B}.execute(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x3021};
@@ -112,7 +113,7 @@ TEST(Instruction, LOAD_R8_HL) {
   MockMemoryBus memory;
   EXPECT_CALL(memory, read(word{0x2c72})).WillOnce(Return(byte{0x3b}));
 
-  auto time_passed = LOAD_R8_HL<R8::B>{}.execute(registers, memory);
+  auto time_passed = LOAD_R8_HL{CPU::R8::B}.execute(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x3021};
@@ -131,7 +132,7 @@ TEST(Instruction, LOAD_R8_n) {
   MockMemoryBus memory;
   EXPECT_CALL(memory, read(word{0x3021})).WillOnce(Return(byte{0x31}));
 
-  auto time_passed = LOAD_R8_n<R8::B>{}.execute(registers, memory);
+  auto time_passed = LOAD_R8_n{CPU::R8::B}.execute(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x3021};
@@ -169,7 +170,7 @@ TEST(Instruction, SET) {
 
   MockMemoryBus memory;
 
-  auto time_passed = SET<0, R8::B>{}.execute(registers, memory);
+  auto time_passed = SET{0, CPU::R8::B}.execute(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x3022};
@@ -185,7 +186,7 @@ TEST(Instruction, RES) {
 
   MockMemoryBus memory;
 
-  auto time_passed = RES<0, R8::B>{}.execute(registers, memory);
+  auto time_passed = RES{0, CPU::R8::B}.execute(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x3022};
@@ -204,7 +205,7 @@ TEST(Instruction, LOAD_A_R16) {
   MockMemoryBus memory;
   EXPECT_CALL(memory, read(word{0x5b0c})).WillOnce(Return(byte{0x37}));
 
-  auto time_passed = LOAD_A_R16<R16::BC>{}.execute(registers, memory);
+  auto time_passed = LOAD_A_R16{CPU::R16::BC}.execute(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x305e};

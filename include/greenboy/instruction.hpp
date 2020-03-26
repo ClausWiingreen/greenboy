@@ -13,7 +13,6 @@ namespace greenboy {
  */
 class Instruction {
 public:
-  //! @cond Doxygen_Suppress
   Instruction() = default;
   Instruction(const Instruction &) = delete;
   Instruction(Instruction &&) = delete;
@@ -22,7 +21,6 @@ public:
 
   Instruction &operator=(const Instruction &) = delete;
   Instruction &operator=(Instruction &&) = delete;
-  //! @endcond
 
   /**
    * @brief executes the instruction
@@ -33,53 +31,8 @@ public:
    * @return the number of cpu cycles it took to execute this instruction
    */
   virtual cycles execute(CPU::RegisterSet &registers,
-                         [[maybe_unused]] MemoryBus &memory) const = 0;
+                         MemoryBus &memory) const = 0;
 };
-
-enum class R8 { B, C, D, E, H, L };
-
-template <R8 Reg> constexpr byte &reg(CPU::RegisterSet &registers) {
-  switch (Reg) {
-  case R8::B:
-    return registers.b;
-  case R8::C:
-    return registers.c;
-  case R8::D:
-    return registers.d;
-  case R8::E:
-    return registers.e;
-  case R8::H:
-    return registers.h;
-  case R8::L:
-    return registers.l;
-  }
-}
-
-enum class R16 { BC, DE, HL };
-
-class register_pair {
-  byte &m_high;
-  byte &m_low;
-
-public:
-  constexpr register_pair(byte &high, byte &low) : m_high(high), m_low(low) {}
-
-  constexpr byte &high() { return m_high; }
-  constexpr byte &low() { return m_low; }
-  constexpr const byte &high() const { return m_high; }
-  constexpr const byte &low() const { return m_low; }
-};
-
-template <R16 Reg> constexpr register_pair reg(CPU::RegisterSet &registers) {
-  switch (Reg) {
-  case R16::BC:
-    return register_pair(registers.b, registers.c);
-  case R16::DE:
-    return register_pair(registers.d, registers.e);
-  case R16::HL:
-    return register_pair(registers.h, registers.l);
-  }
-}
 
 namespace instructions {
 /**
@@ -88,8 +41,7 @@ namespace instructions {
  */
 class NOP : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override;
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -99,8 +51,7 @@ public:
  */
 class CALL : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override;
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -109,8 +60,7 @@ public:
  */
 class RET : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override;
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -118,100 +68,83 @@ public:
  * the PC the page 0 memory address. The next instruction is fetched from the
  * address specified by the new content of PC.
  *
- * @tparam Address the address to jump to
  */
-template <int Address> class RST : public Instruction {
+class RST : public Instruction {
+  word m_address;
+
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
+  explicit RST(word address) : m_address{address} {}
 
-    memory.write(registers.sp--, registers.pc.high());
-    memory.write(registers.sp--, registers.pc.low());
-
-    registers.pc = word(Address);
-    return cycles{16};
-  }
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
  * @brief Loads content of one register into another
  *
- * @tparam To the register to read from
- * @tparam From the register to write to
  */
-template <R8 To, R8 From> class LOAD_R8_R8 : public Instruction {
+class LOAD_R8_R8 : public Instruction {
+  CPU::R8 m_to;
+  CPU::R8 m_from;
+
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    reg<To>(registers) = reg<From>(registers);
-    return cycles{4};
-  }
+  constexpr LOAD_R8_R8(CPU::R8 to, CPU::R8 from) : m_to(to), m_from(from) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
  * @brief Loads immediate value int to a register
  *
- * @tparam To the register to write to
  */
-template <R8 To> class LOAD_R8_n : public Instruction {
+class LOAD_R8_n : public Instruction {
+  CPU::R8 m_to;
+
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    reg<To>(registers) = memory.read(registers.pc++);
-    return cycles{8};
-  }
+  explicit constexpr LOAD_R8_n(CPU::R8 to) : m_to(to) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
  * @brief Loads the value store at the memory at the address pointed to by HL
  * into a register.
  *
- * @tparam To the register to write the value to.
  */
-template <R8 To> class LOAD_R8_HL : public Instruction {
+class LOAD_R8_HL : public Instruction {
+  CPU::R8 m_to;
+
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    reg<To>(registers) = memory.read(word(registers.l, registers.h));
-    return cycles{8};
-  }
+  explicit constexpr LOAD_R8_HL(CPU::R8 to) : m_to(to) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
  * @brief Loads the values in a register into the memory at the address
  * specified by HL.
  *
- * @tparam From the register to read from.
  */
-template <R8 From> class LOAD_HL_R8 : public Instruction {
+class LOAD_HL_R8 : public Instruction {
+  CPU::R8 m_from;
+
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    memory.write(word(registers.l, registers.h), reg<From>(registers));
-    return cycles{8};
-  }
+  explicit constexpr LOAD_HL_R8(CPU::R8 from) : m_from(from) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
  * @brief Loads the value store at the memory at the address pointed to by the
  * 16 bit register into register A.
  *
- * @tparam From the register to read from.
  */
-template <R16 From> class LOAD_A_R16 : public Instruction {
+class LOAD_A_R16 : public Instruction {
+  CPU::R16 m_source;
+
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    auto word_register = reg<From>(registers);
-    registers.a = memory.read(word{word_register.low(), word_register.high()});
-    return cycles{8};
-  }
+  explicit constexpr LOAD_A_R16(CPU::R16 source) : m_source(source) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -220,16 +153,7 @@ public:
  */
 class LOAD_A_HLI : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    registers.a = memory.read(word{registers.l, registers.h});
-    registers.l++;
-    if (registers.l == byte{0}) {
-      registers.h++;
-    }
-    return cycles{8};
-  }
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -238,16 +162,7 @@ public:
  */
 class LOAD_A_HLD : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    registers.a = memory.read(word{registers.l, registers.h});
-    registers.l--;
-    if (registers.l == byte{0xff}) {
-      registers.h--;
-    }
-    return cycles{8};
-  }
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -256,16 +171,7 @@ public:
  */
 class LOAD_HLI_A : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    memory.write(word{registers.l, registers.h}, registers.a);
-    registers.l++;
-    if (registers.l == byte{0}) {
-      registers.h++;
-    }
-    return cycles{8};
-  }
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -274,16 +180,7 @@ public:
  */
 class LOAD_HLD_A : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    memory.write(word{registers.l, registers.h}, registers.a);
-    registers.l--;
-    if (registers.l == byte{0xff}) {
-      registers.h--;
-    }
-    return cycles{8};
-  }
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -293,12 +190,7 @@ public:
  */
 class LOAD_A_C : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    registers.a = memory.read(word{registers.c, byte{0xff}});
-    return cycles{8};
-  }
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -308,12 +200,7 @@ public:
  */
 class LOAD_C_A : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    memory.write(word{registers.c, byte{0xff}}, registers.a);
-    return cycles{8};
-  }
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -323,12 +210,7 @@ public:
  */
 class LOAD_A_n : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    registers.a = memory.read(word{memory.read(registers.pc++), byte{0xff}});
-    return cycles{12};
-  }
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -338,12 +220,7 @@ public:
  */
 class LOAD_n_A : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    memory.write(word{memory.read(registers.pc++), byte{0xff}}, registers.a);
-    return cycles{12};
-  }
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -353,14 +230,7 @@ public:
  */
 class LOAD_A_nn : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    auto low = memory.read(registers.pc++);
-    auto high = memory.read(registers.pc++);
-    registers.a = memory.read(word{low, high});
-    return cycles{16};
-  }
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -370,14 +240,7 @@ public:
  */
 class LOAD_nn_A : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    auto low = memory.read(registers.pc++);
-    auto high = memory.read(registers.pc++);
-    memory.write(word{low, high}, registers.a);
-    return cycles{16};
-  }
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
@@ -387,61 +250,50 @@ public:
  */
 class LOAD_HL_n : public Instruction {
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override;
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
  * @brief Loads the immediate 16-bit value into the register.
  *
- * @tparam To the register to write to.
  */
-template <R16 To> class LOAD_R16_nn : public Instruction {
+class LOAD_R16_nn : public Instruction {
+  CPU::R16 m_destination;
+
 public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    ++registers.pc;
-    auto [high, low] = reg<To>(registers);
-    low.get() = memory.read(registers.pc++);
-    high.get() = memory.read(registers.pc++);
-    return cycles{12};
-  }
+  explicit constexpr LOAD_R16_nn(CPU::R16 destination)
+      : m_destination(destination) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
  * @brief Instruction that writes 1 to a given bit on a given register
  *
- * @tparam Bit the bit that is set should be between 0 and 7
- * @tparam Reg the 8 bit register where the bit is sat
  */
-template <unsigned Bit, R8 Reg> class SET : public Instruction {
-public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    registers.pc++;
-    registers.pc++;
+class SET : public Instruction {
+  unsigned m_bit;
+  CPU::R8 m_reg;
 
-    reg<Reg>(registers) |= byte{1u << Bit};
-    return cycles{8};
-  }
+public:
+  constexpr SET(unsigned bit, CPU::R8 reg) : m_bit(bit), m_reg(reg) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 /**
  * @brief Instructions that writes 0 to a given bit on a given register.
  *
- * @tparam Bit the bit that is reset, should be between 0 and 7
- * @tparam Reg the 8 bit register where the bit is reset
  */
-template <unsigned Bit, R8 Reg> class RES : public Instruction {
-public:
-  cycles execute(CPU::RegisterSet &registers,
-                 [[maybe_unused]] MemoryBus &memory) const override {
-    registers.pc++;
-    registers.pc++;
+class RES : public Instruction {
+  unsigned m_bit;
+  CPU::R8 m_reg;
 
-    reg<Reg>(registers) &= byte{static_cast<uint8_t>(~(1u << Bit))};
-    return cycles{8};
-  }
+public:
+  constexpr RES(unsigned bit, CPU::R8 reg) : m_bit(bit), m_reg(reg) {}
+
+  cycles execute(CPU::RegisterSet &registers,
+                 MemoryBus & /* memory */) const override;
 };
 
 } // namespace instructions

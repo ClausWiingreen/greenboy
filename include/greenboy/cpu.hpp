@@ -27,6 +27,23 @@ public:
    */
   virtual cycles update() = 0;
 
+  enum class R8 { B, C, D, E, H, L };
+
+  class RegisterPair {
+    byte &m_high;
+    byte &m_low;
+
+  public:
+    constexpr RegisterPair(byte &high, byte &low) : m_high(high), m_low(low) {}
+
+    constexpr byte &high() { return m_high; }
+    constexpr byte &low() { return m_low; }
+    constexpr const byte &high() const { return m_high; }
+    constexpr const byte &low() const { return m_low; }
+  };
+
+  enum class R16 { BC, DE, HL };
+
   /**
    * @brief holds the register values for the CPU
    */
@@ -125,6 +142,34 @@ public:
     constexpr bool operator!=(const RegisterSet &other) const {
       return b != other.b || c != other.c || d != other.d || e != other.e ||
              h != other.h || l != other.l || a != other.a || f != other.f;
+    }
+
+    constexpr byte &reference(R8 identifier) {
+      switch (identifier) {
+      case R8::B:
+        return b;
+      case R8::C:
+        return c;
+      case R8::D:
+        return d;
+      case R8::E:
+        return e;
+      case R8::H:
+        return h;
+      case R8::L:
+        return l;
+      }
+    }
+
+    constexpr RegisterPair reference(R16 identifier) {
+      switch (identifier) {
+      case R16::BC:
+        return RegisterPair(b, c);
+      case R16::DE:
+        return RegisterPair(d, e);
+      case R16::HL:
+        return RegisterPair(h, l);
+      }
     }
   };
 };
