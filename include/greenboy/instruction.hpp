@@ -307,8 +307,42 @@ class RES : public Instruction {
 public:
   constexpr RES(unsigned bit, CPU::R8 reg) : m_bit(bit), m_reg(reg) {}
 
-  cycles execute(CPU::RegisterSet &registers,
-                 MemoryBus & /* memory */) const override;
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+
+/**
+ * @brief Instructions that writes the value of HL to SP.
+ *
+ */
+class LOAD_SP_HL : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+
+/**
+ * @brief Instructions that pushes the value of a 16 bit register to the stack
+ *
+ */
+class PUSH_R16 : public Instruction {
+  CPU::R16 m_register;
+
+public:
+  explicit constexpr PUSH_R16(CPU::R16 reg) : m_register(reg) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+/**
+ * @brief Instructions that pops a 16 bit value from the stack and places it
+ * into the 16 bit register
+ *
+ */
+class POP_R16 : public Instruction {
+  CPU::R16 m_register;
+
+public:
+  explicit constexpr POP_R16(CPU::R16 reg) : m_register(reg) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
 } // namespace instructions
