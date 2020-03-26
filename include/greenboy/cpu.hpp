@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 #include "timing.hpp"
 #include "types.hpp"
 
