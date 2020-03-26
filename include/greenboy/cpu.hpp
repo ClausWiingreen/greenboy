@@ -158,6 +158,8 @@ public:
         return h;
       case R8::L:
         return l;
+      default:
+        throw std::runtime_error("Tried to access an unknown 8 bit register");
       }
     }
 
@@ -169,6 +171,8 @@ public:
         return RegisterPair(d, e);
       case R16::HL:
         return RegisterPair(h, l);
+      default:
+        throw std::runtime_error("Tried to access an unknown 16 bit register");
       }
     }
   };
