@@ -172,15 +172,22 @@ cycles LOAD_A_R16::execute(CPU::RegisterSet &registers,
                            MemoryBus &memory) const {
   ++registers.pc;
   auto word_register = registers.reference(m_source);
-  registers.a = memory.read(word{word_register.low(), word_register.high()});
+  registers.a = memory.read(word_register.to_word());
+  return cycles{8};
+}
+cycles LOAD_R16_A::execute(CPU::RegisterSet &registers,
+                           MemoryBus &memory) const {
+  ++registers.pc;
+  auto word_register = registers.reference(m_destination);
+  memory.write(word_register.to_word(), registers.a);
   return cycles{8};
 }
 cycles LOAD_R16_nn::execute(CPU::RegisterSet &registers,
                             MemoryBus &memory) const {
   ++registers.pc;
   auto word_register = registers.reference(m_destination);
-  word_register.low() = memory.read(registers.pc++);
-  word_register.high() = memory.read(registers.pc++);
+  word_register.low(memory.read(registers.pc++));
+  word_register.high(memory.read(registers.pc++));
   return cycles{12};
 }
 } // namespace greenboy::instructions

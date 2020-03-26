@@ -1,17 +1,21 @@
 #pragma once
 
+#include <functional>
 #include <stdexcept>
+#include <variant>
 
 #include "timing.hpp"
 #include "types.hpp"
 
 namespace greenboy {
+template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template <class... Ts> overloaded(Ts...)->overloaded<Ts...>;
+
 /**
  * a well defined interface for CPU emulation.
  */
 class CPU {
 public:
-  //! @cond Doxygen_Suppress
   CPU() = default;
   CPU(const CPU &other) = delete;
   CPU(CPU &&) = delete;
@@ -20,7 +24,6 @@ public:
 
   CPU &operator=(const CPU &) = delete;
   CPU &operator=(CPU &&) = delete;
-  //! @endcond
 
   /**
    * Updates the state of the CPU.
@@ -30,6 +33,7 @@ public:
   virtual cycles update() = 0;
 
   enum class R8 { B, C, D, E, H, L };
+  enum class R16 { BC, DE, HL, SP };
 
   class RegisterPair {
     byte &m_high;
@@ -42,9 +46,66 @@ public:
     constexpr byte &low() { return m_low; }
     constexpr const byte &high() const { return m_high; }
     constexpr const byte &low() const { return m_low; }
+    constexpr const word to_word() const {
+      return greenboy::word{low(), high()};
+    }
   };
 
-  enum class R16 { BC, DE, HL };
+  class WordRegister {
+    std::variant<RegisterPair, std::reference_wrapper<word>> m_value;
+
+  public:
+    explicit WordRegister(word &value) : m_value{std::ref(value)} {}
+    explicit constexpr WordRegister(RegisterPair value) : m_value{value} {}
+
+    word to_word() const {
+      return std::visit(
+          overloaded{[](RegisterPair pair) { return pair.to_word(); },
+                     [](std::reference_wrapper<word> w) { return w.get(); }},
+          m_value);
+    }
+
+    void from_word(word value) {
+      std::visit(
+          overloaded{[&](RegisterPair &pair) {
+                       pair.low() = value.low();
+                       pair.high() = value.high();
+                     },
+                     [&](std::reference_wrapper<word> w) { w.get() = value; }},
+          m_value);
+    }
+
+    byte high() const {
+      return std::visit(
+          overloaded{
+              [](RegisterPair pair) { return pair.high(); },
+              [](std::reference_wrapper<word> w) { return w.get().high(); }},
+          m_value);
+    }
+    void high(byte value) {
+      std::visit(overloaded{[&](RegisterPair pair) { pair.high() = value; },
+                            [&](std::reference_wrapper<word> w) {
+                              w.get() = word{w.get().low(), value};
+                            }},
+                 m_value);
+    }
+
+    byte low() const {
+      return std::visit(overloaded{[](RegisterPair pair) { return pair.low(); },
+                                   [](std::reference_wrapper<word> w) {
+                                     return w.get().low();
+                                   }},
+                        m_value);
+    }
+
+    void low(byte value) {
+      std::visit(overloaded{[&](RegisterPair pair) { pair.low() = value; },
+                            [&](std::reference_wrapper<word> w) {
+                              w.get() = word{value, w.get().high()};
+                            }},
+                 m_value);
+    }
+  };
 
   /**
    * @brief holds the register values for the CPU
@@ -165,14 +226,16 @@ public:
       }
     }
 
-    constexpr RegisterPair reference(R16 identifier) {
+    constexpr WordRegister reference(R16 identifier) {
       switch (identifier) {
       case R16::BC:
-        return RegisterPair(b, c);
+        return WordRegister{RegisterPair(b, c)};
       case R16::DE:
-        return RegisterPair(d, e);
+        return WordRegister{RegisterPair(d, e)};
       case R16::HL:
-        return RegisterPair(h, l);
+        return WordRegister{RegisterPair(h, l)};
+      case R16::SP:
+        return WordRegister{sp};
       default:
         throw std::runtime_error("Tried to access an unknown 16 bit register");
       }

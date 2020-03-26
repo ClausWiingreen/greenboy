@@ -78,6 +78,7 @@ target_include_directories(Greenboy
 target_link_libraries(Greenboy
   PRIVATE
     greenboy_warnings
+  PUBLIC
     greenboy_options
 )
 

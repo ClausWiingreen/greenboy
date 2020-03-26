@@ -148,6 +148,21 @@ public:
 };
 
 /**
+ * @brief Loads the value stored in register A to the address pointed to by the
+ * 16 bit register.
+ *
+ */
+class LOAD_R16_A : public Instruction {
+  CPU::R16 m_destination;
+
+public:
+  explicit constexpr LOAD_R16_A(CPU::R16 destination)
+      : m_destination(destination) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+
+/**
  * @brief Loads the value store at the memory at the address pointed to by HL
  * into register A and increments HL.
  */
