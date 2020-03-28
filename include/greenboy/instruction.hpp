@@ -354,5 +354,15 @@ class LOAD_HL_SP_e : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
+
+/**
+ * @brief Instructions that stored the value of SP to the memory pointed to by
+ * the immediated address
+ *
+ */
+class LOAD_nn_SP : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
 } // namespace instructions
 } // namespace greenboy

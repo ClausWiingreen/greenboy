@@ -238,4 +238,15 @@ cycles LOAD_HL_SP_e::execute(CPU::RegisterSet &registers,
 
   return cycles{12};
 }
+
+cycles LOAD_nn_SP::execute(CPU::RegisterSet &registers,
+                           MemoryBus &memory) const {
+  ++registers.pc;
+  auto low = memory.read(registers.pc++);
+  auto high = memory.read(registers.pc++);
+  word address{low, high};
+  memory.write(address++, registers.sp.low());
+  memory.write(address, registers.sp.high());
+  return cycles{20};
+}
 } // namespace greenboy::instructions
