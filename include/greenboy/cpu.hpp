@@ -107,6 +107,28 @@ public:
     }
   };
 
+  struct Flags {
+    bool zero;
+    bool negate;
+    bool half_carry;
+    bool carry;
+
+    byte value() {
+      return byte{(zero ? 0x80u : 0u) | (negate ? 0x40u : 0u) |
+                  (half_carry ? 0x20u : 0u) | (carry ? 0x10u : 0u)};
+    }
+
+    constexpr bool operator==(const Flags &other) const {
+      return zero == other.zero && negate == other.negate &&
+             half_carry == other.half_carry && carry == other.carry;
+    }
+
+    constexpr bool operator!=(const Flags &other) const {
+      return zero != other.zero || negate != other.negate ||
+             half_carry != other.half_carry || carry != other.carry;
+    }
+  };
+
   /**
    * @brief holds the register values for the CPU
    */
@@ -179,7 +201,7 @@ public:
      * Consists of 4 flags that are set or reset according to results of
      * instruction execution.
      */
-    byte f;
+    Flags f;
 
     /**
      * @brief checks whether the current RegisterSet is equal to the other

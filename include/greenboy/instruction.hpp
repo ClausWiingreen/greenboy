@@ -331,6 +331,7 @@ public:
 
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
+
 /**
  * @brief Instructions that pops a 16 bit value from the stack and places it
  * into the 16 bit register
@@ -345,5 +346,13 @@ public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
+/**
+ * @brief Instructions that moves the value of SP + e to register HL
+ *
+ */
+class LOAD_HL_SP_e : public Instruction {
+public:
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
 } // namespace instructions
 } // namespace greenboy

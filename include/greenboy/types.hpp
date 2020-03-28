@@ -249,13 +249,17 @@ public:
     return copy;
   }
 
+  static constexpr byte max() { return byte{0xff}; }
+  static constexpr byte min() { return byte{0x00}; }
+
+  constexpr uint8_t value() const { return m_value; }
+
   /**
    * @brief give word access to the inner value for construction
    *
    */
   friend class greenboy::word;
 };
-
 static_assert(sizeof(byte) == 1, "Bytes are required to only be 1 byte long");
 
 /**
@@ -407,6 +411,8 @@ public:
    * @return byte the least significant byte in the word
    */
   constexpr byte low() const { return byte{m_value}; }
+
+  constexpr uint16_t value() const { return m_value; }
 };
 static_assert(sizeof(word) == 2, "Words are required to be 2 bytes long");
 } // namespace greenboy

@@ -213,4 +213,30 @@ cycles POP_R16::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   reg.from_word(word{memory.read(++registers.sp), memory.read(++registers.sp)});
   return cycles{12};
 }
+
+constexpr bool is_bit_set(unsigned value, unsigned index) {
+  return (value & (1u << index)) == (1u << index);
+}
+
+cycles LOAD_HL_SP_e::execute(CPU::RegisterSet &registers,
+                             MemoryBus &memory) const {
+  ++registers.pc;
+
+  auto offset_byte = memory.read(registers.pc++);
+  auto offset_value = offset_byte.value();
+  unsigned offset =
+      is_bit_set(offset_value, 7) ? offset_value - 256 : offset_value;
+  unsigned sp = registers.sp.value();
+  unsigned result = sp + offset;
+  auto carry = result ^ sp ^ offset;
+
+  registers.f.zero = false;
+  registers.f.negate = false;
+  registers.f.half_carry = is_bit_set(carry, 4u);
+  registers.f.carry = is_bit_set(carry, 8u);
+
+  registers.reference(CPU::R16::HL).from_word(word{result});
+
+  return cycles{12};
+}
 } // namespace greenboy::instructions
