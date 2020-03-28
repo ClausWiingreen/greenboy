@@ -222,12 +222,11 @@ cycles LOAD_HL_SP_e::execute(CPU::RegisterSet &registers,
                              MemoryBus &memory) const {
   ++registers.pc;
 
-  auto offset_byte = memory.read(registers.pc++);
-  auto offset_value = offset_byte.value();
-  unsigned offset =
-      is_bit_set(offset_value, 7) ? offset_value - 256 : offset_value;
-  unsigned sp = registers.sp.value();
-  unsigned result = sp + offset;
+  auto offset_value = memory.read(registers.pc++).value();
+  auto offset = static_cast<unsigned>(
+      is_bit_set(offset_value, 7) ? offset_value - 256 : offset_value);
+  auto sp = registers.sp.value();
+  auto result = sp + offset;
   auto carry = result ^ sp ^ offset;
 
   registers.f.zero = false;
