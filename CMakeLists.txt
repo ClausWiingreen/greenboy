@@ -106,6 +106,7 @@ unset(CMAKE_CXX_CLANG_TIDY)
 if(GREENBOY_TESTS)
   enable_testing()
   include(GoogleTest)
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   add_subdirectory("external/gtest/")
   mark_as_advanced(
     BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
