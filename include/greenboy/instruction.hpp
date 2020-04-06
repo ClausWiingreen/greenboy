@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <memory>
 #include <utility>
 
 #include "cpu.hpp"
@@ -190,7 +191,14 @@ public:
 
 class ByteAccess {
 public:
+  ByteAccess() = default;
+  ByteAccess(const ByteAccess &) = delete;
+  ByteAccess(ByteAccess &&) = delete;
+
   virtual ~ByteAccess() = default;
+
+  ByteAccess &operator=(const ByteAccess &) = delete;
+  ByteAccess &operator=(ByteAccess &&) = delete;
 
   virtual byte read(CPU::RegisterSet &registers,
                     const MemoryBus &memory) const = 0;
@@ -202,7 +210,7 @@ class ByteConstantAccess : public ByteAccess {
   byte m_value;
 
 public:
-  ByteConstantAccess(byte value) : m_value(value) {}
+  explicit ByteConstantAccess(byte value) : m_value(value) {}
 
   byte read(CPU::RegisterSet &registers,
             const MemoryBus &memory) const override;
@@ -232,7 +240,14 @@ public:
 
 class WordAccess {
 public:
+  WordAccess() = default;
+  WordAccess(const WordAccess &) = delete;
+  WordAccess(WordAccess &&) = delete;
+
   virtual ~WordAccess() = default;
+
+  WordAccess &operator=(const WordAccess &) = delete;
+  WordAccess &operator=(WordAccess &&) = delete;
 
   virtual word read(CPU::RegisterSet &registers,
                     const MemoryBus &memory) const = 0;
@@ -293,7 +308,7 @@ class WordLoad : public Instruction {
 public:
   WordLoad(std::shared_ptr<WordAccess> dest,
            std::shared_ptr<const WordAccess> src)
-      : m_destination(dest), m_source(src) {}
+      : m_destination(std::move(dest)), m_source(std::move(src)) {}
 
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };

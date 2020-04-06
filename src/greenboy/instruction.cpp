@@ -77,30 +77,12 @@ cycles LOAD_HLD_A::execute(CPU::RegisterSet &registers,
   return cycles{8};
 }
 
-cycles LOAD_A_nn::execute(CPU::RegisterSet &registers,
-                          MemoryBus &memory) const {
-  ++registers.pc;
-  auto low = memory.read(registers.pc++);
-  auto high = memory.read(registers.pc++);
-  registers.a = memory.read(word{low, high});
-  return cycles{16};
-}
-
-cycles LOAD_nn_A::execute(CPU::RegisterSet &registers,
-                          MemoryBus &memory) const {
-  ++registers.pc;
-  auto low = memory.read(registers.pc++);
-  auto high = memory.read(registers.pc++);
-  memory.write(word{low, high}, registers.a);
-  return cycles{16};
-}
-
 cycles SET::execute(CPU::RegisterSet &registers,
                     MemoryBus & /* memory */) const {
   registers.pc++;
   registers.pc++;
 
-  registers.reference(m_reg) |= byte{1u << m_bit};
+  registers.reference(m_reg) |= byte{static_cast<uint8_t>(1u << m_bit)};
   return cycles{8};
 }
 cycles RES::execute(CPU::RegisterSet &registers,
@@ -110,15 +92,6 @@ cycles RES::execute(CPU::RegisterSet &registers,
 
   registers.reference(m_reg) &= byte{static_cast<uint8_t>(~(1u << m_bit))};
   return cycles{8};
-}
-
-cycles LOAD_R16_nn::execute(CPU::RegisterSet &registers,
-                            MemoryBus &memory) const {
-  ++registers.pc;
-  auto word_register = registers.reference(m_destination);
-  word_register.low(memory.read(registers.pc++));
-  word_register.high(memory.read(registers.pc++));
-  return cycles{12};
 }
 
 cycles PUSH_R16::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {

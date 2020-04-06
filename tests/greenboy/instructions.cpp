@@ -102,27 +102,6 @@ TEST(Instruction, RES) {
   EXPECT_EQ(registers, expected_register_state);
 }
 
-TEST(Instruction, LOAD_R16_nn) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x305d};
-  registers.d = byte{0x5b};
-  registers.e = byte{0x0c};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, read(word{0x305e})).WillOnce(Return(byte{0x6b}));
-  EXPECT_CALL(memory, read(word{0x305f})).WillOnce(Return(byte{0x9a}));
-
-  auto time_passed = LOAD_R16_nn{CPU::R16::DE}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x3060};
-  expected_register_state.d = byte{0x9a};
-  expected_register_state.e = byte{0x6b};
-
-  EXPECT_EQ(time_passed, cycles{12});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
 TEST(Instruction, LOAD_A_HLI) {
   CPU::RegisterSet registers{};
   registers.pc = word{0x305d};
@@ -208,46 +187,6 @@ TEST(Instruction, LOAD_HLD_A) {
   expected_register_state.a = byte{0x0a};
 
   EXPECT_EQ(time_passed, cycles{8});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
-TEST(Instruction, LOAD_A_nn) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x305d};
-  registers.a = byte{0x0a};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, read(word{0x305e})).WillOnce(Return(byte{0x95}));
-  EXPECT_CALL(memory, read(word{0x305f})).WillOnce(Return(byte{0x95}));
-  EXPECT_CALL(memory, read(word{0x9595})).WillOnce(Return(byte{0x37}));
-
-  auto time_passed = LOAD_A_nn{}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x3060};
-  expected_register_state.a = byte{0x37};
-
-  EXPECT_EQ(time_passed, cycles{16});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
-TEST(Instruction, LOAD_nn_A) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x305d};
-  registers.a = byte{0x0a};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, read(word{0x305e})).WillOnce(Return(byte{0x9f}));
-  EXPECT_CALL(memory, read(word{0x305f})).WillOnce(Return(byte{0xb6}));
-  EXPECT_CALL(memory, write(word{0xb69f}, byte{0x0a}));
-
-  auto time_passed = LOAD_nn_A{}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x3060};
-  expected_register_state.a = byte{0x0a};
-
-  EXPECT_EQ(time_passed, cycles{16});
   EXPECT_EQ(registers, expected_register_state);
 }
 

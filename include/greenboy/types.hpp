@@ -299,7 +299,7 @@ public:
    * @param high the upper 8-bits of data
    */
   constexpr word(byte high, byte low) noexcept
-      : word{low.m_value + (high.m_value << 8u)} {}
+      : word{static_cast<uint16_t>(low.m_value + (high.m_value << 8u))} {}
 
   /**
    * @brief Destroy the word object
