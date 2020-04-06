@@ -135,17 +135,6 @@ cycles LOAD_HL_SP_e::execute(CPU::RegisterSet &registers,
   return cycles{12};
 }
 
-cycles LOAD_nn_SP::execute(CPU::RegisterSet &registers,
-                           MemoryBus &memory) const {
-  ++registers.pc;
-  auto low = memory.read(registers.pc++);
-  auto high = memory.read(registers.pc++);
-  word address{low, high};
-  memory.write(address++, registers.sp.low());
-  memory.write(address, registers.sp.high());
-  return cycles{20};
-}
-
 ByteLoad::ByteLoad(std::shared_ptr<ByteAccess> dest,
                    std::shared_ptr<const ByteAccess> src)
     : m_destination(std::move(dest)), m_source(std::move(src)) {
@@ -292,5 +281,19 @@ void ImmediateWordAccess::write(CPU::RegisterSet & /* registers */,
 cycles WordLoad::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   m_destination->write(registers, memory, m_source->read(registers, memory));
   return cycles();
+}
+word IndirectWordAccess::read(CPU::RegisterSet &registers,
+                              const MemoryBus &memory) const {
+  auto ptr = m_pointer->read(registers, memory);
+  auto low = memory.read(ptr);
+  ++ptr;
+  auto high = memory.read(ptr);
+  return word(high, low);
+}
+void IndirectWordAccess::write(CPU::RegisterSet &registers, MemoryBus &memory,
+                               word value) {
+  auto ptr = m_pointer->read(registers, memory);
+  memory.write(ptr, value.low());
+  memory.write(ptr, value.high());
 }
 } // namespace greenboy::instructions

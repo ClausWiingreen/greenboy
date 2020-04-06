@@ -179,16 +179,6 @@ public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
-/**
- * @brief Instructions that stored the value of SP to the memory pointed to by
- * the immediated address
- *
- */
-class LOAD_nn_SP : public Instruction {
-public:
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
 class ByteAccess {
 public:
   ByteAccess() = default;
@@ -204,6 +194,23 @@ public:
                     const MemoryBus &memory) const = 0;
   virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
                      byte value) = 0;
+};
+
+class WordAccess {
+public:
+  WordAccess() = default;
+  WordAccess(const WordAccess &) = delete;
+  WordAccess(WordAccess &&) = delete;
+
+  virtual ~WordAccess() = default;
+
+  WordAccess &operator=(const WordAccess &) = delete;
+  WordAccess &operator=(WordAccess &&) = delete;
+
+  virtual word read(CPU::RegisterSet &registers,
+                    const MemoryBus &memory) const = 0;
+  virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
+                     word value) = 0;
 };
 
 class ByteConstantAccess : public ByteAccess {
@@ -238,23 +245,6 @@ public:
              byte value) override;
 };
 
-class WordAccess {
-public:
-  WordAccess() = default;
-  WordAccess(const WordAccess &) = delete;
-  WordAccess(WordAccess &&) = delete;
-
-  virtual ~WordAccess() = default;
-
-  WordAccess &operator=(const WordAccess &) = delete;
-  WordAccess &operator=(WordAccess &&) = delete;
-
-  virtual word read(CPU::RegisterSet &registers,
-                    const MemoryBus &memory) const = 0;
-  virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
-                     word value) = 0;
-};
-
 class IndirectByteAccess : public ByteAccess {
   std::shared_ptr<WordAccess> m_pointer;
 
@@ -284,6 +274,19 @@ class ImmediateWordAccess : public WordAccess {
   ImmediateByteAccess m_access;
 
 public:
+  word read(CPU::RegisterSet &registers,
+            const MemoryBus &memory) const override;
+  void write(CPU::RegisterSet &registers, MemoryBus &memory,
+             word value) override;
+};
+
+class IndirectWordAccess : public WordAccess {
+  std::shared_ptr<WordAccess> m_pointer;
+
+public:
+  IndirectWordAccess(std::shared_ptr<WordAccess> pointer)
+      : m_pointer(std::move(pointer)) {}
+
   word read(CPU::RegisterSet &registers,
             const MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
