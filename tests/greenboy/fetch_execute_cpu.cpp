@@ -9,7 +9,7 @@ using ::testing::ReturnRef;
 
 class MockMemoryBus : public MemoryBus {
 public:
-  MOCK_METHOD(byte, read, (word), (override));
+  MOCK_METHOD(byte, read, (word), (const, override));
   MOCK_METHOD(void, write, (word, byte), (override));
 };
 

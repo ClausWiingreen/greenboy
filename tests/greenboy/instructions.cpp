@@ -10,8 +10,15 @@ using ::testing::Return;
 
 class MockMemoryBus : public MemoryBus {
 public:
-  MOCK_METHOD(byte, read, (word), (override));
+  MOCK_METHOD(byte, read, (word), (const, override));
   MOCK_METHOD(void, write, (word, byte), (override));
+};
+
+class MockByteAccess : public ByteAccess {
+public:
+  MOCK_METHOD(byte, read, (CPU::RegisterSet &, const MemoryBus &),
+              (const, override));
+  MOCK_METHOD(void, write, (CPU::RegisterSet &, MemoryBus &, byte), (override));
 };
 
 TEST(Instruction, NOP) {
@@ -63,106 +70,6 @@ TEST(Instruction, RET) {
   EXPECT_EQ(registers, expected_register_state);
 }
 
-TEST(Instruction, LOAD_R8_R8) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x3020};
-  registers.b = byte{0x30};
-  registers.c = byte{0x80};
-
-  MockMemoryBus memory;
-
-  auto time_passed =
-      LOAD_R8_R8{CPU::R8::B, CPU::R8::C}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x3021};
-  expected_register_state.b = byte{0x80};
-  expected_register_state.c = byte{0x80};
-  EXPECT_EQ(time_passed, cycles{4});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
-TEST(Instruction, LOAD_HL_R8) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x3020};
-  registers.d = byte{0x30};
-  registers.h = byte{0x20};
-  registers.l = byte{0x12};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, write(word{0x2012}, byte{0x30}));
-
-  auto time_passed = LOAD_HL_R8{CPU::R8::D}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x3021};
-  expected_register_state.d = byte{0x30};
-  expected_register_state.h = byte{0x20};
-  expected_register_state.l = byte{0x12};
-  EXPECT_EQ(time_passed, cycles{8});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
-TEST(Instruction, LOAD_R8_HL) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x3020};
-  registers.e = byte{0x62};
-  registers.h = byte{0x2c};
-  registers.l = byte{0x72};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, read(word{0x2c72})).WillOnce(Return(byte{0x3b}));
-
-  auto time_passed = LOAD_R8_HL{CPU::R8::E}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x3021};
-  expected_register_state.e = byte{0x3b};
-  expected_register_state.h = byte{0x2c};
-  expected_register_state.l = byte{0x72};
-  EXPECT_EQ(time_passed, cycles{8});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
-TEST(Instruction, LOAD_R8_n) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x3020};
-  registers.h = byte{0x30};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, read(word{0x3021})).WillOnce(Return(byte{0x31}));
-
-  auto time_passed = LOAD_R8_n{CPU::R8::H}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x3021};
-  expected_register_state.h = byte{0x31};
-  EXPECT_EQ(time_passed, cycles{8});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
-TEST(Instruction, LOAD_HL_n) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x3020};
-  registers.b = byte{0x30};
-  registers.h = byte{0x62};
-  registers.l = byte{0xa5};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, read(word{0x3021})).WillOnce(Return(byte{0x88}));
-  EXPECT_CALL(memory, write(word{0x62a5}, byte{0x88}));
-
-  auto time_passed = LOAD_HL_n{}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x3022};
-  expected_register_state.b = byte{0x30};
-  expected_register_state.h = byte{0x62};
-  expected_register_state.l = byte{0xa5};
-  EXPECT_EQ(time_passed, cycles{12});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
 TEST(Instruction, SET) {
   CPU::RegisterSet registers{};
   registers.pc = word{0x3020};
@@ -191,28 +98,6 @@ TEST(Instruction, RES) {
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x3022};
   expected_register_state.b = byte{0x30};
-  EXPECT_EQ(time_passed, cycles{8});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
-TEST(Instruction, LOAD_A_R16) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x305d};
-  registers.b = byte{0x5b};
-  registers.c = byte{0x0c};
-  registers.a = byte{0x0a};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, read(word{0x5b0c})).WillOnce(Return(byte{0x37}));
-
-  auto time_passed = LOAD_A_R16{CPU::R16::BC}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x305e};
-  expected_register_state.b = byte{0x5b};
-  expected_register_state.c = byte{0x0c};
-  expected_register_state.a = byte{0x37};
-
   EXPECT_EQ(time_passed, cycles{8});
   EXPECT_EQ(registers, expected_register_state);
 }
@@ -326,84 +211,6 @@ TEST(Instruction, LOAD_HLD_A) {
   EXPECT_EQ(registers, expected_register_state);
 }
 
-TEST(Instruction, LOAD_A_C) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x305d};
-  registers.c = byte{0x95};
-  registers.a = byte{0x0a};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, read(word{0xff95})).WillOnce(Return(byte{0x37}));
-
-  auto time_passed = LOAD_A_C{}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x305e};
-  expected_register_state.c = byte{0x95};
-  expected_register_state.a = byte{0x37};
-
-  EXPECT_EQ(time_passed, cycles{8});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
-TEST(Instruction, LOAD_C_A) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x305d};
-  registers.c = byte{0x9f};
-  registers.a = byte{0x0a};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, write(word{0xff9f}, byte{0x0a}));
-
-  auto time_passed = LOAD_C_A{}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x305e};
-  expected_register_state.c = byte{0x9f};
-  expected_register_state.a = byte{0x0a};
-
-  EXPECT_EQ(time_passed, cycles{8});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
-TEST(Instruction, LOAD_A_n) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x305d};
-  registers.a = byte{0x0a};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, read(word{0x305e})).WillOnce(Return(byte{0x95}));
-  EXPECT_CALL(memory, read(word{0xff95})).WillOnce(Return(byte{0x37}));
-
-  auto time_passed = LOAD_A_n{}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x305f};
-  expected_register_state.a = byte{0x37};
-
-  EXPECT_EQ(time_passed, cycles{12});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
-TEST(Instruction, LOAD_n_A) {
-  CPU::RegisterSet registers{};
-  registers.pc = word{0x305d};
-  registers.a = byte{0x0a};
-
-  MockMemoryBus memory;
-  EXPECT_CALL(memory, read(word{0x305e})).WillOnce(Return(byte{0x9f}));
-  EXPECT_CALL(memory, write(word{0xff9f}, byte{0x0a}));
-
-  auto time_passed = LOAD_n_A{}.execute(registers, memory);
-
-  CPU::RegisterSet expected_register_state{};
-  expected_register_state.pc = word{0x305f};
-  expected_register_state.a = byte{0x0a};
-
-  EXPECT_EQ(time_passed, cycles{12});
-  EXPECT_EQ(registers, expected_register_state);
-}
-
 TEST(Instruction, LOAD_A_nn) {
   CPU::RegisterSet registers{};
   registers.pc = word{0x305d};
@@ -460,4 +267,83 @@ TEST(Instruction, RST) {
   EXPECT_EQ(time_passed, cycles{16});
   EXPECT_EQ(registers, expected_register_state);
 }
+
+TEST(ByteLoad, RejectsNullPointers) {
+  auto mocked_access = std::make_shared<MockByteAccess>();
+
+  EXPECT_THROW(ByteLoad(nullptr, nullptr), std::invalid_argument);
+  EXPECT_THROW(ByteLoad(mocked_access, nullptr), std::invalid_argument);
+  EXPECT_THROW(ByteLoad(nullptr, mocked_access), std::invalid_argument);
+  EXPECT_NO_THROW(ByteLoad(mocked_access, mocked_access));
+}
+
+TEST(ByteLoad, TakesTheReadValueFromSourceAndWritesItToDestination) {
+  auto source = std::make_shared<MockByteAccess>();
+  auto destination = std::make_shared<MockByteAccess>();
+  CPU::RegisterSet registers{};
+  MockMemoryBus memory;
+
+  EXPECT_CALL(*source, read(_, _)).WillOnce(Return(byte{0x24}));
+  EXPECT_CALL(*destination, write(_, _, byte{0x24}));
+
+  ByteLoad{destination, source}.execute(registers, memory);
+}
+
+TEST(ByteRegisterAccess, ReadsFromRegister) {
+  ByteRegisterAccess access{CPU::R8::B};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+  registers.b = byte{0x12};
+
+  EXPECT_EQ(access.read(registers, memory), byte{0x12});
+}
+
+TEST(ByteRegisterAccess, WritesToRegister) {
+  ByteRegisterAccess access{CPU::R8::C};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+  registers.c = byte{0x12};
+
+  access.write(registers, memory, byte{0x34});
+  EXPECT_EQ(registers.c, byte{0x34});
+}
+
+TEST(ImmediateByteAccess, ReadsTheNextByte) {
+  ImmediateByteAccess access;
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+  registers.pc = word{0x0100};
+  EXPECT_CALL(memory, read(word{0x0100})).WillOnce(Return(byte{0x54}));
+
+  EXPECT_EQ(access.read(registers, memory), byte{0x54});
+}
+
+TEST(ImmediateByteAccess, RejectsWrites) {
+  ImmediateByteAccess access;
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_THROW(access.write(registers, memory, byte{0x34}), std::runtime_error);
+}
+
+TEST(WordRegisterAccess, ReadsFromRegister) {
+  WordRegisterAccess access{CPU::R16::BC};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+  registers.b = byte{0x12};
+  registers.c = byte{0x43};
+
+  EXPECT_EQ(access.read(registers, memory), word{0x1243});
+}
+
+TEST(WordRegisterAccess, WritesToRegister) {
+  WordRegisterAccess access{CPU::R16::DE};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  access.write(registers, memory, word{0x3465});
+  EXPECT_EQ(registers.d, byte{0x34});
+  EXPECT_EQ(registers.e, byte{0x65});
+}
+
 } // namespace

@@ -33,7 +33,7 @@ public:
   virtual cycles update() = 0;
 
   enum class R8 { B, C, D, E, H, L };
-  enum class R16 { BC, DE, HL, SP };
+  enum class R16 { BC, DE, HL, SP, PC, AF };
 
   class RegisterPair {
     byte &m_high;
@@ -113,7 +113,20 @@ public:
     bool half_carry;
     bool carry;
 
-    byte value() {
+    Flags() = default;
+    explicit Flags(byte value) {
+      zero = (value.value() & 0x80u);
+      negate = (value.value() & 0x40u);
+      half_carry = (value.value() & 0x20u);
+      carry = (value.value() & 0x10u);
+    }
+    Flags(const Flags &) = default;
+    Flags(Flags &&) = default;
+
+    Flags &operator=(const Flags &) = default;
+    Flags &operator=(Flags &&) = default;
+
+    explicit operator byte() const {
       return byte{(zero ? 0x80u : 0u) | (negate ? 0x40u : 0u) |
                   (half_carry ? 0x20u : 0u) | (carry ? 0x10u : 0u)};
     }

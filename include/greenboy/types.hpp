@@ -24,15 +24,10 @@ public:
   /**
    * @brief constructs a new byte object which is initialized to the given value
    *
-   * @tparam IntType the type of the parameter, must be an intergal type
    * @param value the 8-bit value stored in the byte
    */
-  template <typename IntType>
-  explicit constexpr byte(IntType value) noexcept
-      : m_value{static_cast<uint8_t>(value)} {
-    static_assert(std::is_integral<IntType>::value,
-                  "IntType must be an integral type");
-  }
+
+  explicit constexpr byte(uint8_t value) noexcept : m_value{value} {}
 
   /**
    * @brief default copy constructor
@@ -107,7 +102,7 @@ public:
    * @return byte a new byte with the value of the or'ed bytes
    */
   constexpr byte operator|(const byte &other) const {
-    return byte{m_value | other.m_value};
+    return byte{static_cast<uint8_t>(m_value | other.m_value)};
   }
 
   /**
@@ -129,7 +124,7 @@ public:
    * @return byte a new byte with the value of the and'ed bytes
    */
   constexpr byte operator&(const byte &other) const {
-    return byte{m_value & other.m_value};
+    return byte{static_cast<uint8_t>(m_value & other.m_value)};
   }
 
   /**
@@ -151,7 +146,7 @@ public:
    * @return byte a new byte with the value of the xor'ed bytes
    */
   constexpr byte operator^(const byte &other) const {
-    return byte{m_value ^ other.m_value};
+    return byte{static_cast<uint8_t>(m_value ^ other.m_value)};
   }
 
   /**
@@ -172,7 +167,7 @@ public:
    * @return byte a new byte that contain the value after shifting the values
    */
   constexpr byte operator<<(unsigned value) const {
-    return byte{m_value << value};
+    return byte{static_cast<uint8_t>(m_value << value)};
   }
 
   /**
@@ -193,7 +188,7 @@ public:
    * @return byte a new byte that contain the value after shifting the values
    */
   constexpr byte operator>>(const uint8_t value) const {
-    return byte{m_value << value};
+    return byte{static_cast<uint8_t>(m_value << value)};
   }
 
   /**
@@ -201,7 +196,9 @@ public:
    *
    * @return byte with its bit patteren inverted
    */
-  constexpr byte operator~() const { return byte{~m_value}; }
+  constexpr byte operator~() const {
+    return byte{static_cast<uint8_t>(~m_value)};
+  }
 
   /**
    * @brief prefix increment operator increments the byte and returns the value
@@ -291,15 +288,9 @@ public:
   /**
    * @brief constructs a new word object which is initialized to the given value
    *
-   * @tparam IntType the type of the parameter, must be an intergal type
    * @param value the 16-bit value to be stored in the byte
    */
-  template <typename IntType>
-  explicit constexpr word(IntType value) noexcept
-      : m_value{static_cast<uint16_t>(value)} {
-    static_assert(std::is_integral<IntType>::value,
-                  "IntType must be an integral type");
-  }
+  explicit constexpr word(uint16_t value) noexcept : m_value{value} {}
 
   /**
    * @brief Constructs a new word object from two bytes
@@ -307,7 +298,7 @@ public:
    * @param low the lower 8-bits of data
    * @param high the upper 8-bits of data
    */
-  constexpr word(byte low, byte high) noexcept
+  constexpr word(byte high, byte low) noexcept
       : word{low.m_value + (high.m_value << 8u)} {}
 
   /**
@@ -403,14 +394,17 @@ public:
    *
    * @return byte the most significant byte in the word
    */
-  constexpr byte high() const { return byte{m_value >> 8u}; }
+  constexpr byte high() const {
+    return byte{static_cast<uint8_t>(m_value >> 8u)};
+  }
 
   /**
    * @brief retreives the lower 8 bits and creates a byte from it.
    *
    * @return byte the least significant byte in the word
    */
-  constexpr byte low() const { return byte{m_value}; }
+  constexpr byte low() const { return byte{static_cast<uint8_t>(m_value)};
+  }
 
   constexpr uint16_t value() const { return m_value; }
 };

@@ -28,7 +28,7 @@ public:
    * \param address the address to read from.
    * \returns the byte at the address pointed to by the address.
    */
-  virtual byte read(word address) = 0;
+  virtual byte read(word address) const = 0;
 
   /**
    * Performs a memory mapped write which delegates part of the memory

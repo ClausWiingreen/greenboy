@@ -24,13 +24,6 @@ cycles RET::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   return cycles{16};
 }
 
-cycles LOAD_HL_n::execute(CPU::RegisterSet &registers,
-                          MemoryBus &memory) const {
-  ++registers.pc;
-  memory.write(word(registers.l, registers.h), memory.read(registers.pc++));
-  return cycles{12};
-}
-
 cycles RST::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   ++registers.pc;
 
@@ -84,30 +77,6 @@ cycles LOAD_HLD_A::execute(CPU::RegisterSet &registers,
   return cycles{8};
 }
 
-cycles LOAD_A_C::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  ++registers.pc;
-  registers.a = memory.read(word{registers.c, byte{0xff}});
-  return cycles{8};
-}
-
-cycles LOAD_C_A::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  ++registers.pc;
-  memory.write(word{registers.c, byte{0xff}}, registers.a);
-  return cycles{8};
-}
-
-cycles LOAD_A_n::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  ++registers.pc;
-  registers.a = memory.read(word{memory.read(registers.pc++), byte{0xff}});
-  return cycles{12};
-}
-
-cycles LOAD_n_A::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  ++registers.pc;
-  memory.write(word{memory.read(registers.pc++), byte{0xff}}, registers.a);
-  return cycles{12};
-}
-
 cycles LOAD_A_nn::execute(CPU::RegisterSet &registers,
                           MemoryBus &memory) const {
   ++registers.pc;
@@ -124,13 +93,6 @@ cycles LOAD_nn_A::execute(CPU::RegisterSet &registers,
   auto high = memory.read(registers.pc++);
   memory.write(word{low, high}, registers.a);
   return cycles{16};
-}
-
-cycles LOAD_R8_R8::execute(CPU::RegisterSet &registers,
-                           MemoryBus & /* memory */) const {
-  ++registers.pc;
-  registers.reference(m_to) = registers.reference(m_from);
-  return cycles{4};
 }
 
 cycles SET::execute(CPU::RegisterSet &registers,
@@ -150,39 +112,6 @@ cycles RES::execute(CPU::RegisterSet &registers,
   return cycles{8};
 }
 
-cycles LOAD_R8_n::execute(CPU::RegisterSet &registers,
-                          MemoryBus &memory) const {
-  ++registers.pc;
-  registers.reference(m_to) = memory.read(registers.pc++);
-  return cycles{8};
-}
-cycles LOAD_R8_HL::execute(CPU::RegisterSet &registers,
-                           MemoryBus &memory) const {
-  ++registers.pc;
-  registers.reference(m_to) = memory.read(word(registers.l, registers.h));
-  return cycles{8};
-}
-cycles LOAD_HL_R8::execute(CPU::RegisterSet &registers,
-                           MemoryBus &memory) const {
-  ++registers.pc;
-  memory.write(word(registers.l, registers.h), registers.reference(m_from));
-  return cycles{8};
-}
-cycles LOAD_A_R16::execute(CPU::RegisterSet &registers,
-                           MemoryBus &memory) const {
-  ++registers.pc;
-  auto word_register = registers.reference(m_source);
-  registers.a = memory.read(word_register.to_word());
-  return cycles{8};
-}
-cycles LOAD_R16_A::execute(CPU::RegisterSet &registers,
-                           MemoryBus &memory) const {
-  ++registers.pc;
-  auto word_register = registers.reference(m_destination);
-  memory.write(word_register.to_word(), registers.a);
-  return cycles{8};
-}
-
 cycles LOAD_R16_nn::execute(CPU::RegisterSet &registers,
                             MemoryBus &memory) const {
   ++registers.pc;
@@ -190,13 +119,6 @@ cycles LOAD_R16_nn::execute(CPU::RegisterSet &registers,
   word_register.low(memory.read(registers.pc++));
   word_register.high(memory.read(registers.pc++));
   return cycles{12};
-}
-
-cycles LOAD_SP_HL::execute(CPU::RegisterSet &registers,
-                           MemoryBus & /*memory*/) const {
-  ++registers.pc;
-  registers.sp = registers.reference(CPU::R16::HL).to_word();
-  return cycles{8};
 }
 
 cycles PUSH_R16::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
@@ -234,7 +156,8 @@ cycles LOAD_HL_SP_e::execute(CPU::RegisterSet &registers,
   registers.f.half_carry = is_bit_set(carry, 4u);
   registers.f.carry = is_bit_set(carry, 8u);
 
-  registers.reference(CPU::R16::HL).from_word(word{result});
+  registers.reference(CPU::R16::HL)
+      .from_word(word{static_cast<uint16_t>(result)});
 
   return cycles{12};
 }
@@ -248,5 +171,153 @@ cycles LOAD_nn_SP::execute(CPU::RegisterSet &registers,
   memory.write(address++, registers.sp.low());
   memory.write(address, registers.sp.high());
   return cycles{20};
+}
+
+ByteLoad::ByteLoad(std::shared_ptr<ByteAccess> dest,
+                   std::shared_ptr<const ByteAccess> src)
+    : m_destination(std::move(dest)), m_source(std::move(src)) {
+  if (m_source == nullptr) {
+    throw std::invalid_argument("source may not be null");
+  }
+
+  if (m_destination == nullptr) {
+    throw std::invalid_argument("destination may not be null");
+  }
+}
+
+cycles ByteLoad::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
+  ++registers.pc;
+  m_destination->write(registers, memory, m_source->read(registers, memory));
+  return cycles(4);
+}
+byte ByteRegisterAccess::read(CPU::RegisterSet &registers,
+                              const MemoryBus & /* memory */) const {
+  switch (m_reg) {
+  case CPU::R8::B:
+    return registers.b;
+  case CPU::R8::C:
+    return registers.c;
+  case CPU::R8::D:
+    return registers.d;
+  case CPU::R8::E:
+    return registers.e;
+  case CPU::R8::H:
+    return registers.h;
+  case CPU::R8::L:
+    return registers.l;
+  default:
+    throw std::runtime_error("Tried to read from an unknown 8 bit register");
+  }
+}
+void ByteRegisterAccess::write(CPU::RegisterSet &registers,
+                               MemoryBus & /* memory */, byte value) {
+  switch (m_reg) {
+  case CPU::R8::B:
+    registers.b = value;
+    break;
+  case CPU::R8::C:
+    registers.c = value;
+    break;
+  case CPU::R8::D:
+    registers.d = value;
+    break;
+  case CPU::R8::E:
+    registers.e = value;
+    break;
+  case CPU::R8::H:
+    registers.h = value;
+    break;
+  case CPU::R8::L:
+    registers.l = value;
+    break;
+  default:
+    throw std::runtime_error("Tried to write to an unknown 8 bit register");
+  }
+}
+byte ImmediateByteAccess::read(CPU::RegisterSet &registers,
+                               const MemoryBus &memory) const {
+  return memory.read(registers.pc++);
+}
+void ImmediateByteAccess::write(CPU::RegisterSet & /* registers */,
+                                MemoryBus & /* memory */, byte /* value */) {
+  throw std::runtime_error("Tried to write to immediate byte");
+}
+byte IndirectByteAccess::read(CPU::RegisterSet &registers,
+                              const MemoryBus &memory) const {
+  return memory.read(m_pointer->read(registers, memory));
+}
+void IndirectByteAccess::write(CPU::RegisterSet &registers, MemoryBus &memory,
+                               byte value) {
+  memory.write(m_pointer->read(registers, memory), value);
+}
+word WordRegisterAccess::read(CPU::RegisterSet &registers,
+                              const MemoryBus & /* memory */) const {
+  switch (m_reg) {
+  case CPU::R16::BC:
+    return word{registers.b, registers.c};
+  case CPU::R16::DE:
+    return word{registers.d, registers.e};
+  case CPU::R16::HL:
+    return word{registers.h, registers.l};
+  case CPU::R16::SP:
+    return registers.sp;
+  case CPU::R16::PC:
+    return registers.pc;
+  case CPU::R16::AF:
+    return word{registers.a, registers.f.operator greenboy::byte()};
+  default:
+    throw std::runtime_error("Tried to read from an unknown 16 bit register");
+  }
+}
+void WordRegisterAccess::write(CPU::RegisterSet &registers,
+                               MemoryBus & /* memory */, word value) {
+  switch (m_reg) {
+  case CPU::R16::BC:
+    registers.b = value.high();
+    registers.c = value.low();
+    break;
+  case CPU::R16::DE:
+    registers.d = value.high();
+    registers.e = value.low();
+    break;
+  case CPU::R16::HL:
+    registers.h = value.high();
+    registers.l = value.low();
+    break;
+  case CPU::R16::SP:
+    registers.sp = value;
+    break;
+  case CPU::R16::PC:
+    registers.pc = value;
+    break;
+  case CPU::R16::AF:
+    registers.a = value.high();
+    registers.f = CPU::Flags(value.low());
+    break;
+  default:
+    throw std::runtime_error("Tried to write to an unknown 16 bit register");
+  }
+}
+byte ByteConstantAccess::read(CPU::RegisterSet & /* registers */,
+                              const MemoryBus & /* memory */) const {
+  return m_value;
+}
+void ByteConstantAccess::write(CPU::RegisterSet & /* registers */,
+                               MemoryBus & /* memory */, byte /* value */) {
+  throw std::runtime_error("Tried to write to a constant 8 bit value");
+}
+word ImmediateWordAccess::read(CPU::RegisterSet &registers,
+                               const MemoryBus &memory) const {
+  auto low = m_access.read(registers, memory);
+  auto high = m_access.read(registers, memory);
+  return word(high, low);
+}
+void ImmediateWordAccess::write(CPU::RegisterSet & /* registers */,
+                                MemoryBus & /* memory */, word /* value */) {
+  throw std::runtime_error("Tried to write to immediate word");
+}
+cycles WordLoad::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
+  m_destination->write(registers, memory, m_source->read(registers, memory));
+  return cycles();
 }
 } // namespace greenboy::instructions
