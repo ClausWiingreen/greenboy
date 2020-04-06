@@ -70,14 +70,16 @@ TEST(Instruction, RET) {
   EXPECT_EQ(registers, expected_register_state);
 }
 
-TEST(Instruction, SET) {
+TEST(Instruction, Set) {
   CPU::RegisterSet registers{};
   registers.pc = word{0x3020};
   registers.b = byte{0x30};
 
   MockMemoryBus memory;
 
-  auto time_passed = SET{0, CPU::R8::B}.execute(registers, memory);
+  auto time_passed =
+      Set{0, std::make_shared<ByteRegisterAccess>(CPU::R8::B)}.execute(
+          registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x3022};
@@ -86,14 +88,16 @@ TEST(Instruction, SET) {
   EXPECT_EQ(registers, expected_register_state);
 }
 
-TEST(Instruction, RES) {
+TEST(Instruction, Res) {
   CPU::RegisterSet registers{};
   registers.pc = word{0x3020};
   registers.b = byte{0x31};
 
   MockMemoryBus memory;
 
-  auto time_passed = RES{0, CPU::R8::B}.execute(registers, memory);
+  auto time_passed =
+      Res{0, std::make_shared<ByteRegisterAccess>(CPU::R8::B)}.execute(
+          registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x3022};

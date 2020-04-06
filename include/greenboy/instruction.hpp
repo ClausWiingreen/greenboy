@@ -116,61 +116,6 @@ public:
 };
 
 /**
- * @brief Instruction that writes 1 to a given bit on a given register
- *
- */
-class SET : public Instruction {
-  unsigned m_bit;
-  CPU::R8 m_reg;
-
-public:
-  constexpr SET(unsigned bit, CPU::R8 reg) : m_bit(bit), m_reg(reg) {}
-
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Instructions that writes 0 to a given bit on a given register.
- *
- */
-class RES : public Instruction {
-  unsigned m_bit;
-  CPU::R8 m_reg;
-
-public:
-  constexpr RES(unsigned bit, CPU::R8 reg) : m_bit(bit), m_reg(reg) {}
-
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Instructions that pushes the value of a 16 bit register to the stack
- *
- */
-class PUSH_R16 : public Instruction {
-  CPU::R16 m_register;
-
-public:
-  explicit constexpr PUSH_R16(CPU::R16 reg) : m_register(reg) {}
-
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Instructions that pops a 16 bit value from the stack and places it
- * into the 16 bit register
- *
- */
-class POP_R16 : public Instruction {
-  CPU::R16 m_register;
-
-public:
-  explicit constexpr POP_R16(CPU::R16 reg) : m_register(reg) {}
-
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
  * @brief Instructions that moves the value of SP + e to register HL
  *
  */
@@ -312,6 +257,65 @@ public:
   WordLoad(std::shared_ptr<WordAccess> dest,
            std::shared_ptr<const WordAccess> src)
       : m_destination(std::move(dest)), m_source(std::move(src)) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+
+/**
+ * @brief Instructions that pushes the value of a 16 bit register to the stack
+ *
+ */
+class Push : public Instruction {
+  std::shared_ptr<WordRegisterAccess> m_register;
+
+public:
+  explicit Push(std::shared_ptr<WordRegisterAccess> reg)
+      : m_register(std::move(reg)) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+
+/**
+ * @brief Instructions that pops a 16 bit value from the stack and places it
+ * into the 16 bit register
+ *
+ */
+class Pop : public Instruction {
+  std::shared_ptr<WordRegisterAccess> m_register;
+
+public:
+  explicit Pop(std::shared_ptr<WordRegisterAccess> reg)
+      : m_register(std::move(reg)) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+
+/**
+ * @brief Instruction that writes 1 to a given bit on a given register
+ *
+ */
+class Set : public Instruction {
+  unsigned m_bit;
+  std::shared_ptr<ByteRegisterAccess> m_reg;
+
+public:
+  Set(unsigned bit, std::shared_ptr<ByteRegisterAccess> reg)
+      : m_bit(bit), m_reg(std::move(reg)) {}
+
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+
+/**
+ * @brief Instructions that writes 0 to a given bit on a given register.
+ *
+ */
+class Res : public Instruction {
+  unsigned m_bit;
+  std::shared_ptr<ByteRegisterAccess> m_reg;
+
+public:
+  Res(unsigned bit, std::shared_ptr<ByteRegisterAccess> reg)
+      : m_bit(bit), m_reg(std::move(reg)) {}
 
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };

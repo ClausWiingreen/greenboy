@@ -77,35 +77,30 @@ cycles LOAD_HLD_A::execute(CPU::RegisterSet &registers,
   return cycles{8};
 }
 
-cycles SET::execute(CPU::RegisterSet &registers,
-                    MemoryBus & /* memory */) const {
-  registers.pc++;
-  registers.pc++;
-
-  registers.reference(m_reg) |= byte{static_cast<uint8_t>(1u << m_bit)};
+cycles Set::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
+  m_reg->write(registers, memory,
+               m_reg->read(registers, memory) |
+                   byte{static_cast<uint8_t>(1u << m_bit)});
   return cycles{8};
 }
-cycles RES::execute(CPU::RegisterSet &registers,
-                    MemoryBus & /* memory */) const {
-  registers.pc++;
-  registers.pc++;
-
-  registers.reference(m_reg) &= byte{static_cast<uint8_t>(~(1u << m_bit))};
+cycles Res::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
+  m_reg->write(registers, memory,
+               m_reg->read(registers, memory) &
+                   byte{static_cast<uint8_t>(~(1u << m_bit))});
   return cycles{8};
 }
 
-cycles PUSH_R16::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  ++registers.pc;
-  auto reg = registers.reference(m_register);
+cycles Push::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
+  auto reg = m_register->read(registers, memory);
   memory.write(registers.sp--, reg.high());
   memory.write(registers.sp--, reg.low());
   return cycles{16};
 }
 
-cycles POP_R16::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  ++registers.pc;
-  auto reg = registers.reference(m_register);
-  reg.from_word(word{memory.read(++registers.sp), memory.read(++registers.sp)});
+cycles Pop::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
+  auto high = memory.read(++registers.sp);
+  auto low = memory.read(++registers.sp);
+  m_register->write(registers, memory, word{high, low});
   return cycles{12};
 }
 
@@ -115,8 +110,6 @@ constexpr bool is_bit_set(unsigned value, unsigned index) {
 
 cycles LOAD_HL_SP_e::execute(CPU::RegisterSet &registers,
                              MemoryBus &memory) const {
-  ++registers.pc;
-
   auto offset_value = memory.read(registers.pc++).value();
   auto offset = static_cast<unsigned>(
       is_bit_set(offset_value, 7) ? offset_value - 256 : offset_value);
@@ -129,9 +122,9 @@ cycles LOAD_HL_SP_e::execute(CPU::RegisterSet &registers,
   registers.f.half_carry = is_bit_set(carry, 4u);
   registers.f.carry = is_bit_set(carry, 8u);
 
-  registers.reference(CPU::R16::HL)
-      .from_word(word{static_cast<uint16_t>(result)});
-
+  word word_result{static_cast<uint16_t>(result)};
+  registers.h = word_result.high();
+  registers.l = word_result.low();
   return cycles{12};
 }
 
