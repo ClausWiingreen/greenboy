@@ -32,49 +32,6 @@ cycles RST::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   return cycles{16};
 }
 
-cycles LOAD_A_HLI::execute(CPU::RegisterSet &registers,
-                           MemoryBus &memory) const {
-  ++registers.pc;
-  registers.a = memory.read(word{registers.h, registers.l});
-  registers.l++;
-  if (registers.l == byte{0}) {
-    registers.h++;
-  }
-  return cycles{8};
-}
-
-cycles LOAD_A_HLD::execute(CPU::RegisterSet &registers,
-                           MemoryBus &memory) const {
-  ++registers.pc;
-  registers.a = memory.read(word{registers.h, registers.l});
-  registers.l--;
-  if (registers.l == byte{0xff}) {
-    registers.h--;
-  }
-  return cycles{8};
-}
-cycles LOAD_HLI_A::execute(CPU::RegisterSet &registers,
-                           MemoryBus &memory) const {
-  ++registers.pc;
-  memory.write(word{registers.h, registers.l}, registers.a);
-  registers.l++;
-  if (registers.l == byte{0}) {
-    registers.h++;
-  }
-  return cycles{8};
-}
-
-cycles LOAD_HLD_A::execute(CPU::RegisterSet &registers,
-                           MemoryBus &memory) const {
-  ++registers.pc;
-  memory.write(word{registers.h, registers.l}, registers.a);
-  registers.l--;
-  if (registers.l == byte{0xff}) {
-    registers.h--;
-  }
-  return cycles{8};
-}
-
 cycles SetBit::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   m_reg->write(registers, memory,
                m_reg->read(registers, memory) |

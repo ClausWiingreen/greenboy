@@ -80,42 +80,6 @@ public:
 };
 
 /**
- * @brief Loads the value store at the memory at the address pointed to by HL
- * into register A and increments HL.
- */
-class LOAD_A_HLI : public Instruction {
-public:
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Loads the value store at the memory at the address pointed to by HL
- * into register A and increments HL.
- */
-class LOAD_A_HLD : public Instruction {
-public:
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Loads the value store at the memory at the address pointed to by HL
- * into register A and increments HL.
- */
-class LOAD_HLI_A : public Instruction {
-public:
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Loads the value store at the memory at the address pointed to by HL
- * into register A and increments HL.
- */
-class LOAD_HLD_A : public Instruction {
-public:
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
  * @brief Instructions that moves the value of SP + e to register HL
  *
  */
