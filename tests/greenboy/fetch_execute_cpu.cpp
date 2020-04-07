@@ -32,7 +32,7 @@ TEST(FetchExecuteCPUCtor, RejectsNullMemoryBus) {
 TEST(FetchExecuteCPUUpdate, FetchesFromMemory) {
   auto memory = std::make_unique<MockMemoryBus>();
   EXPECT_CALL(*memory, read(_));
-  instructions::NOP instruction;
+  instructions::NoOperation instruction;
   auto controlUnit = std::make_unique<MockOpcodeTranslator>();
   EXPECT_CALL(*controlUnit, translate(_)).WillOnce(ReturnRef(instruction));
 
@@ -44,7 +44,7 @@ TEST(FetchExecuteCPUUpdate, FetchesFromMemory) {
 TEST(FetchExecuteCPUUpdate, FirstFetchIsFromAddress0) {
   auto memory = std::make_unique<MockMemoryBus>();
   EXPECT_CALL(*memory, read(word{0x0000}));
-  instructions::NOP instruction;
+  instructions::NoOperation instruction;
   auto controlUnit = std::make_unique<MockOpcodeTranslator>();
   EXPECT_CALL(*controlUnit, translate(_))
       .WillOnce(ReturnRef(instruction));

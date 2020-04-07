@@ -16,25 +16,24 @@ public:
 
 class MockByteAccess : public ByteAccess {
 public:
-  MOCK_METHOD(byte, read, (CPU::RegisterSet &, const MemoryBus &),
-              (const, override));
+  MOCK_METHOD(byte, read, (CPU::RegisterSet &, MemoryBus &), (const, override));
   MOCK_METHOD(void, write, (CPU::RegisterSet &, MemoryBus &, byte), (override));
 };
 
-TEST(Instruction, NOP) {
+TEST(Instruction, NoOperation) {
   CPU::RegisterSet registers{};
   MockMemoryBus memory;
   EXPECT_CALL(memory, read(_)).Times(0);
   EXPECT_CALL(memory, write(_, _)).Times(0);
 
-  auto time_passed = NOP{}.execute(registers, memory);
+  auto time_passed = NoOperation{}.execute(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   EXPECT_EQ(time_passed, cycles{4});
   EXPECT_EQ(registers, expected_register_state);
 }
 
-TEST(Instruction, CALL) {
+TEST(Instruction, Call) {
   CPU::RegisterSet registers{};
   registers.pc = word{0x0100};
   registers.sp = word{0xfffe};
@@ -44,7 +43,7 @@ TEST(Instruction, CALL) {
   EXPECT_CALL(memory, write(word{0xfffe}, byte{0x01}));
   EXPECT_CALL(memory, write(word{0xfffd}, byte{0x03}));
 
-  auto time_passed = CALL{}.execute(registers, memory);
+  auto time_passed = Call{}.execute(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x3020};
@@ -70,7 +69,7 @@ TEST(Instruction, RET) {
   EXPECT_EQ(registers, expected_register_state);
 }
 
-TEST(Instruction, Set) {
+TEST(Instruction, SetBit) {
   CPU::RegisterSet registers{};
   registers.pc = word{0x3020};
   registers.b = byte{0x30};
@@ -78,7 +77,7 @@ TEST(Instruction, Set) {
   MockMemoryBus memory;
 
   auto time_passed =
-      Set{0, std::make_shared<ByteRegisterAccess>(CPU::R8::B)}.execute(
+      SetBit{0, std::make_shared<ByteRegisterAccess>(CPU::R8::B)}.execute(
           registers, memory);
 
   CPU::RegisterSet expected_register_state{};
@@ -88,7 +87,7 @@ TEST(Instruction, Set) {
   EXPECT_EQ(registers, expected_register_state);
 }
 
-TEST(Instruction, Res) {
+TEST(Instruction, ResetBit) {
   CPU::RegisterSet registers{};
   registers.pc = word{0x3020};
   registers.b = byte{0x31};
@@ -96,7 +95,7 @@ TEST(Instruction, Res) {
   MockMemoryBus memory;
 
   auto time_passed =
-      Res{0, std::make_shared<ByteRegisterAccess>(CPU::R8::B)}.execute(
+      ResetBit{0, std::make_shared<ByteRegisterAccess>(CPU::R8::B)}.execute(
           registers, memory);
 
   CPU::RegisterSet expected_register_state{};

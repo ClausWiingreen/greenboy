@@ -32,7 +32,7 @@ public:
    */
   virtual cycles update() = 0;
 
-  enum class R8 { B, C, D, E, H, L };
+  enum class R8 { B, C, D, E, H, L, A };
   enum class R16 { BC, DE, HL, SP, PC, AF };
 
   struct Flags {

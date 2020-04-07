@@ -40,7 +40,7 @@ namespace instructions {
  * @brief a no operation instruction.
  * advanced the pc by one over 4 cycles.
  */
-class NOP : public Instruction {
+class NoOperation : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
@@ -50,7 +50,7 @@ public:
  * immediate 16-bit value into the PC.
  *
  */
-class CALL : public Instruction {
+class Call : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
@@ -135,8 +135,7 @@ public:
   ByteAccess &operator=(const ByteAccess &) = delete;
   ByteAccess &operator=(ByteAccess &&) = delete;
 
-  virtual byte read(CPU::RegisterSet &registers,
-                    const MemoryBus &memory) const = 0;
+  virtual byte read(CPU::RegisterSet &registers, MemoryBus &memory) const = 0;
   virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
                      byte value) = 0;
 };
@@ -152,8 +151,7 @@ public:
   WordAccess &operator=(const WordAccess &) = delete;
   WordAccess &operator=(WordAccess &&) = delete;
 
-  virtual word read(CPU::RegisterSet &registers,
-                    const MemoryBus &memory) const = 0;
+  virtual word read(CPU::RegisterSet &registers, MemoryBus &memory) const = 0;
   virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
                      word value) = 0;
 };
@@ -164,8 +162,7 @@ class ByteConstantAccess : public ByteAccess {
 public:
   explicit ByteConstantAccess(byte value) : m_value(value) {}
 
-  byte read(CPU::RegisterSet &registers,
-            const MemoryBus &memory) const override;
+  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              byte value) override;
 };
@@ -176,16 +173,22 @@ class ByteRegisterAccess : public ByteAccess {
 public:
   explicit ByteRegisterAccess(CPU::R8 reg) : m_reg(reg) {}
 
-  byte read(CPU::RegisterSet &registers,
-            const MemoryBus &memory) const override;
+  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              byte value) override;
+
+  static std::shared_ptr<ByteRegisterAccess> b();
+  static std::shared_ptr<ByteRegisterAccess> c();
+  static std::shared_ptr<ByteRegisterAccess> d();
+  static std::shared_ptr<ByteRegisterAccess> e();
+  static std::shared_ptr<ByteRegisterAccess> h();
+  static std::shared_ptr<ByteRegisterAccess> l();
+  static std::shared_ptr<ByteRegisterAccess> a();
 };
 
 class ImmediateByteAccess : public ByteAccess {
 public:
-  byte read(CPU::RegisterSet &registers,
-            const MemoryBus &memory) const override;
+  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              byte value) override;
 };
@@ -197,8 +200,33 @@ public:
   explicit IndirectByteAccess(std::shared_ptr<WordAccess> pointer)
       : m_pointer(std::move(pointer)) {}
 
-  byte read(CPU::RegisterSet &registers,
-            const MemoryBus &memory) const override;
+  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+  void write(CPU::RegisterSet &registers, MemoryBus &memory,
+             byte value) override;
+};
+
+class IndirectAndIncrementByteAccess : public ByteAccess {
+  IndirectByteAccess m_inner;
+  std::shared_ptr<WordAccess> m_pointer;
+
+public:
+  IndirectAndIncrementByteAccess(std::shared_ptr<WordAccess> pointer)
+      : m_inner(pointer), m_pointer(pointer) {}
+
+  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+  void write(CPU::RegisterSet &registers, MemoryBus &memory,
+             byte value) override;
+};
+
+class IndirectAndDecrementByteAccess : public ByteAccess {
+  IndirectByteAccess m_inner;
+  std::shared_ptr<WordAccess> m_pointer;
+
+public:
+  IndirectAndDecrementByteAccess(std::shared_ptr<WordAccess> pointer)
+      : m_inner(pointer), m_pointer(pointer) {}
+
+  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              byte value) override;
 };
@@ -209,18 +237,36 @@ class WordRegisterAccess : public WordAccess {
 public:
   explicit WordRegisterAccess(CPU::R16 reg) : m_reg(reg) {}
 
-  word read(CPU::RegisterSet &registers,
-            const MemoryBus &memory) const override;
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              word value) override;
+
+  static std::shared_ptr<WordRegisterAccess> bc();
+  static std::shared_ptr<WordRegisterAccess> de();
+  static std::shared_ptr<WordRegisterAccess> hl();
+  static std::shared_ptr<WordRegisterAccess> af();
+  static std::shared_ptr<WordRegisterAccess> sp();
 };
 
 class ImmediateWordAccess : public WordAccess {
   ImmediateByteAccess m_access;
 
 public:
-  word read(CPU::RegisterSet &registers,
-            const MemoryBus &memory) const override;
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+  void write(CPU::RegisterSet &registers, MemoryBus &memory,
+             word value) override;
+};
+
+class DoubleByteWordAccess : public WordAccess {
+  std::shared_ptr<ByteAccess> m_high;
+  std::shared_ptr<ByteAccess> m_low;
+
+public:
+  DoubleByteWordAccess(std::shared_ptr<ByteAccess> high,
+                       std::shared_ptr<ByteAccess> low)
+      : m_high(std::move(high)), m_low(std::move(low)) {}
+
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              word value) override;
 };
@@ -232,11 +278,38 @@ public:
   IndirectWordAccess(std::shared_ptr<WordAccess> pointer)
       : m_pointer(std::move(pointer)) {}
 
-  word read(CPU::RegisterSet &registers,
-            const MemoryBus &memory) const override;
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              word value) override;
 };
+
+class IndirectAndIncrementWordAccess : public WordAccess {
+  IndirectWordAccess m_inner;
+  std::shared_ptr<WordAccess> m_pointer;
+
+public:
+  IndirectAndIncrementWordAccess(std::shared_ptr<WordAccess> pointer)
+      : m_inner(pointer), m_pointer(pointer) {}
+
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+  void write(CPU::RegisterSet &registers, MemoryBus &memory,
+             word value) override;
+};
+
+class IndirectAndDecrementWordAccess : public WordAccess {
+  IndirectWordAccess m_inner;
+  std::shared_ptr<WordAccess> m_pointer;
+
+public:
+  IndirectAndDecrementWordAccess(std::shared_ptr<WordAccess> pointer)
+      : m_inner(pointer), m_pointer(pointer) {}
+
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+  void write(CPU::RegisterSet &registers, MemoryBus &memory,
+             word value) override;
+};
+
+//
 
 class ByteLoad : public Instruction {
   std::shared_ptr<ByteAccess> m_destination;
@@ -294,12 +367,12 @@ public:
  * @brief Instruction that writes 1 to a given bit on a given register
  *
  */
-class Set : public Instruction {
+class SetBit : public Instruction {
   unsigned m_bit;
   std::shared_ptr<ByteRegisterAccess> m_reg;
 
 public:
-  Set(unsigned bit, std::shared_ptr<ByteRegisterAccess> reg)
+  SetBit(unsigned bit, std::shared_ptr<ByteRegisterAccess> reg)
       : m_bit(bit), m_reg(std::move(reg)) {}
 
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
@@ -309,15 +382,70 @@ public:
  * @brief Instructions that writes 0 to a given bit on a given register.
  *
  */
-class Res : public Instruction {
+class ResetBit : public Instruction {
   unsigned m_bit;
   std::shared_ptr<ByteRegisterAccess> m_reg;
 
 public:
-  Res(unsigned bit, std::shared_ptr<ByteRegisterAccess> reg)
+  ResetBit(unsigned bit, std::shared_ptr<ByteRegisterAccess> reg)
       : m_bit(bit), m_reg(std::move(reg)) {}
 
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
+
+// only here for checking and consistency
+inline void examples() {
+  ByteLoad ld_r_r{ByteRegisterAccess::b(), ByteRegisterAccess::c()};
+  ByteLoad ld_r_n{ByteRegisterAccess::d(),
+                  std::make_shared<ImmediateByteAccess>()};
+  ByteLoad le_r_HL{
+      ByteRegisterAccess::e(),
+      std::make_shared<IndirectByteAccess>(WordRegisterAccess::hl())};
+  ByteLoad ld_HL_r{
+      std::make_shared<IndirectByteAccess>(WordRegisterAccess::hl()),
+      ByteRegisterAccess::h()};
+  ByteLoad ld_A_DE{
+      ByteRegisterAccess::a(),
+      std::make_shared<IndirectByteAccess>(WordRegisterAccess::de())};
+  ByteLoad ld_A_C{ByteRegisterAccess::a(),
+                  std::make_shared<IndirectByteAccess>(
+                      std::make_shared<DoubleByteWordAccess>(
+                          std::make_shared<ByteConstantAccess>(byte{0xff}),
+                          ByteRegisterAccess::c()))};
+  ByteLoad ld_C_A{std::make_shared<IndirectByteAccess>(
+                      std::make_shared<DoubleByteWordAccess>(
+                          std::make_shared<ByteConstantAccess>(byte{0xff}),
+                          ByteRegisterAccess::c())),
+                  ByteRegisterAccess::a()};
+  ByteLoad ld_A_n{ByteRegisterAccess::a(),
+                  std::make_shared<IndirectByteAccess>(
+                      std::make_shared<DoubleByteWordAccess>(
+                          std::make_shared<ByteConstantAccess>(byte{0xff}),
+                          std::make_shared<ImmediateByteAccess>()))};
+  ByteLoad ld_n_A{std::make_shared<IndirectByteAccess>(
+                      std::make_shared<DoubleByteWordAccess>(
+                          std::make_shared<ByteConstantAccess>(byte{0xff}),
+                          std::make_shared<ImmediateByteAccess>())),
+                  ByteRegisterAccess::a()};
+  ByteLoad ld_nn_A{std::make_shared<IndirectByteAccess>(
+                       std::make_shared<ImmediateWordAccess>()),
+                   ByteRegisterAccess::a()};
+  ByteLoad ld_A_nn{ByteRegisterAccess::a(),
+                   std::make_shared<IndirectByteAccess>(
+                       std::make_shared<ImmediateWordAccess>())};
+  ByteLoad ld_A_HLI{ByteRegisterAccess::a(),
+                    std::make_shared<IndirectAndIncrementByteAccess>(
+                        WordRegisterAccess::hl())};
+  ByteLoad ld_A_HLD{ByteRegisterAccess::a(),
+                    std::make_shared<IndirectAndDecrementByteAccess>(
+                        WordRegisterAccess::hl())};
+  ByteLoad ld_HLI_A{std::make_shared<IndirectAndIncrementByteAccess>(
+                        WordRegisterAccess::hl()),
+                    ByteRegisterAccess::a()};
+  ByteLoad ld_HLD_A{std::make_shared<IndirectAndDecrementByteAccess>(
+                        WordRegisterAccess::hl()),
+                    ByteRegisterAccess::a()};
+}
 } // namespace instructions
 } // namespace greenboy
+} // namespace instructions

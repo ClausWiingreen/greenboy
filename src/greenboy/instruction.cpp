@@ -1,14 +1,12 @@
 #include "greenboy/instruction.hpp"
 
 namespace greenboy::instructions {
-cycles NOP::execute(CPU::RegisterSet &registers,
-                    MemoryBus & /* memory */) const {
-  ++registers.pc;
+cycles NoOperation::execute(CPU::RegisterSet & /* registers */,
+                            MemoryBus & /* memory */) const {
   return cycles{4};
 }
 
-cycles CALL::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  ++registers.pc;
+cycles Call::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   auto low = memory.read(registers.pc++);
   auto high = memory.read(registers.pc++);
 
@@ -77,13 +75,13 @@ cycles LOAD_HLD_A::execute(CPU::RegisterSet &registers,
   return cycles{8};
 }
 
-cycles Set::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
+cycles SetBit::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   m_reg->write(registers, memory,
                m_reg->read(registers, memory) |
                    byte{static_cast<uint8_t>(1u << m_bit)});
   return cycles{8};
 }
-cycles Res::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
+cycles ResetBit::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   m_reg->write(registers, memory,
                m_reg->read(registers, memory) &
                    byte{static_cast<uint8_t>(~(1u << m_bit))});
@@ -146,7 +144,7 @@ cycles ByteLoad::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   return cycles(4);
 }
 byte ByteRegisterAccess::read(CPU::RegisterSet &registers,
-                              const MemoryBus & /* memory */) const {
+                              MemoryBus & /* memory */) const {
   switch (m_reg) {
   case CPU::R8::B:
     return registers.b;
@@ -160,6 +158,8 @@ byte ByteRegisterAccess::read(CPU::RegisterSet &registers,
     return registers.h;
   case CPU::R8::L:
     return registers.l;
+  case CPU::R8::A:
+    return registers.a;
   default:
     throw std::runtime_error("Tried to read from an unknown 8 bit register");
   }
@@ -185,12 +185,78 @@ void ByteRegisterAccess::write(CPU::RegisterSet &registers,
   case CPU::R8::L:
     registers.l = value;
     break;
+  case CPU::R8::A:
+    registers.a = value;
+    break;
   default:
     throw std::runtime_error("Tried to write to an unknown 8 bit register");
   }
 }
+std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::b() {
+  static std::weak_ptr<ByteRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::B);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
+std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::c() {
+  static std::weak_ptr<ByteRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::C);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
+std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::d() {
+  static std::weak_ptr<ByteRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::D);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
+std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::e() {
+  static std::weak_ptr<ByteRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::E);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
+std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::h() {
+  static std::weak_ptr<ByteRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::H);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
+std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::l() {
+  static std::weak_ptr<ByteRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::L);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
+std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::a() {
+  static std::weak_ptr<ByteRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::A);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
 byte ImmediateByteAccess::read(CPU::RegisterSet &registers,
-                               const MemoryBus &memory) const {
+                               MemoryBus &memory) const {
   return memory.read(registers.pc++);
 }
 void ImmediateByteAccess::write(CPU::RegisterSet & /* registers */,
@@ -198,7 +264,7 @@ void ImmediateByteAccess::write(CPU::RegisterSet & /* registers */,
   throw std::runtime_error("Tried to write to immediate byte");
 }
 byte IndirectByteAccess::read(CPU::RegisterSet &registers,
-                              const MemoryBus &memory) const {
+                              MemoryBus &memory) const {
   return memory.read(m_pointer->read(registers, memory));
 }
 void IndirectByteAccess::write(CPU::RegisterSet &registers, MemoryBus &memory,
@@ -206,7 +272,7 @@ void IndirectByteAccess::write(CPU::RegisterSet &registers, MemoryBus &memory,
   memory.write(m_pointer->read(registers, memory), value);
 }
 word WordRegisterAccess::read(CPU::RegisterSet &registers,
-                              const MemoryBus & /* memory */) const {
+                              MemoryBus & /* memory */) const {
   switch (m_reg) {
   case CPU::R16::BC:
     return word{registers.b, registers.c};
@@ -253,8 +319,63 @@ void WordRegisterAccess::write(CPU::RegisterSet &registers,
     throw std::runtime_error("Tried to write to an unknown 16 bit register");
   }
 }
+
+std::shared_ptr<WordRegisterAccess> WordRegisterAccess::bc() {
+  static std::weak_ptr<WordRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R8::bc);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
+std::shared_ptr<WordRegisterAccess> WordRegisterAccess::bc() {
+  static std::weak_ptr<WordRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R16::BC);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
+std::shared_ptr<WordRegisterAccess> WordRegisterAccess::de() {
+  static std::weak_ptr<WordRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R16::DE);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
+std::shared_ptr<WordRegisterAccess> WordRegisterAccess::hl() {
+  static std::weak_ptr<WordRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R16::HL);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
+std::shared_ptr<WordRegisterAccess> WordRegisterAccess::af() {
+  static std::weak_ptr<WordRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R16::AF);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
+std::shared_ptr<WordRegisterAccess> WordRegisterAccess::sp() {
+  static std::weak_ptr<WordRegisterAccess> instance;
+  if (instance.expired()) {
+    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R16::SP);
+    instance = new_instance;
+    return new_instance;
+  }
+  return instance.lock();
+}
 byte ByteConstantAccess::read(CPU::RegisterSet & /* registers */,
-                              const MemoryBus & /* memory */) const {
+                              MemoryBus & /* memory */) const {
   return m_value;
 }
 void ByteConstantAccess::write(CPU::RegisterSet & /* registers */,
@@ -262,7 +383,7 @@ void ByteConstantAccess::write(CPU::RegisterSet & /* registers */,
   throw std::runtime_error("Tried to write to a constant 8 bit value");
 }
 word ImmediateWordAccess::read(CPU::RegisterSet &registers,
-                               const MemoryBus &memory) const {
+                               MemoryBus &memory) const {
   auto low = m_access.read(registers, memory);
   auto high = m_access.read(registers, memory);
   return word(high, low);
@@ -276,7 +397,7 @@ cycles WordLoad::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   return cycles();
 }
 word IndirectWordAccess::read(CPU::RegisterSet &registers,
-                              const MemoryBus &memory) const {
+                              MemoryBus &memory) const {
   auto ptr = m_pointer->read(registers, memory);
   auto low = memory.read(ptr);
   ++ptr;
@@ -288,5 +409,70 @@ void IndirectWordAccess::write(CPU::RegisterSet &registers, MemoryBus &memory,
   auto ptr = m_pointer->read(registers, memory);
   memory.write(ptr, value.low());
   memory.write(ptr, value.high());
+}
+word DoubleByteWordAccess::read(CPU::RegisterSet &registers,
+                                MemoryBus &memory) const {
+  return word(m_high->read(registers, memory), m_low->read(registers, memory));
+}
+void DoubleByteWordAccess::write(CPU::RegisterSet &registers, MemoryBus &memory,
+                                 word value) {
+  m_high->write(registers, memory, value.high());
+  m_low->write(registers, memory, value.low());
+}
+byte IndirectAndIncrementByteAccess::read(CPU::RegisterSet &registers,
+                                          MemoryBus &memory) const {
+  auto result = m_inner.read(registers, memory);
+  m_pointer->write(registers, memory, ++m_pointer->read(registers, memory));
+  return result;
+}
+void IndirectAndIncrementByteAccess::write(CPU::RegisterSet &registers,
+                                           MemoryBus &memory, byte value) {
+  m_inner.write(registers, memory, value);
+  m_pointer->write(registers, memory, ++m_pointer->read(registers, memory));
+}
+byte IndirectAndDecrementByteAccess::read(CPU::RegisterSet &registers,
+                                          MemoryBus &memory) const {
+  auto result = m_inner.read(registers, memory);
+  m_pointer->write(registers, memory, --m_pointer->read(registers, memory));
+  return result;
+}
+void IndirectAndDecrementByteAccess::write(CPU::RegisterSet &registers,
+                                           MemoryBus &memory, byte value) {
+  m_inner.write(registers, memory, value);
+  m_pointer->write(registers, memory, --m_pointer->read(registers, memory));
+}
+word IndirectAndIncrementWordAccess::read(CPU::RegisterSet &registers,
+                                          MemoryBus &memory) const {
+  auto result = m_inner.read(registers, memory);
+  auto ptr = m_pointer->read(registers, memory);
+  ++ptr;
+  ++ptr;
+  m_pointer->write(registers, memory, ptr);
+  return result;
+}
+void IndirectAndIncrementWordAccess::write(CPU::RegisterSet &registers,
+                                           MemoryBus &memory, word value) {
+  m_inner.write(registers, memory, value);
+  auto ptr = m_pointer->read(registers, memory);
+  ++ptr;
+  ++ptr;
+  m_pointer->write(registers, memory, ptr);
+}
+word IndirectAndDecrementWordAccess::read(CPU::RegisterSet &registers,
+                                          MemoryBus &memory) const {
+  auto result = m_inner.read(registers, memory);
+  auto ptr = m_pointer->read(registers, memory);
+  --ptr;
+  --ptr;
+  m_pointer->write(registers, memory, ptr);
+  return result;
+}
+void IndirectAndDecrementWordAccess::write(CPU::RegisterSet &registers,
+                                           MemoryBus &memory, word value) {
+  m_inner.write(registers, memory, value);
+  auto ptr = m_pointer->read(registers, memory);
+  --ptr;
+  --ptr;
+  m_pointer->write(registers, memory, ptr);
 }
 } // namespace greenboy::instructions
