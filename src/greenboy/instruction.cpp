@@ -17,12 +17,12 @@ cycles Call::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   return cycles{24};
 }
 
-cycles RET::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
+cycles Return::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   registers.pc = word(memory.read(++registers.sp), memory.read(++registers.sp));
   return cycles{16};
 }
 
-cycles RST::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
+cycles Restart::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   ++registers.pc;
 
   memory.write(registers.sp--, registers.pc.high());
@@ -61,26 +61,6 @@ cycles Pop::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
 
 constexpr bool is_bit_set(unsigned value, unsigned index) {
   return (value & (1u << index)) == (1u << index);
-}
-
-cycles LOAD_HL_SP_e::execute(CPU::RegisterSet &registers,
-                             MemoryBus &memory) const {
-  auto offset_value = memory.read(registers.pc++).value();
-  auto offset = static_cast<unsigned>(
-      is_bit_set(offset_value, 7) ? offset_value - 256 : offset_value);
-  auto sp = registers.sp.value();
-  auto result = sp + offset;
-  auto carry = result ^ sp ^ offset;
-
-  registers.f.zero = false;
-  registers.f.negate = false;
-  registers.f.half_carry = is_bit_set(carry, 4u);
-  registers.f.carry = is_bit_set(carry, 8u);
-
-  word word_result{static_cast<uint16_t>(result)};
-  registers.h = word_result.high();
-  registers.l = word_result.low();
-  return cycles{12};
 }
 
 ByteLoad::ByteLoad(std::shared_ptr<ByteAccess> dest,
@@ -387,39 +367,5 @@ void IndirectAndDecrementByteAccess::write(CPU::RegisterSet &registers,
                                            MemoryBus &memory, byte value) {
   m_inner.write(registers, memory, value);
   m_pointer->write(registers, memory, --m_pointer->read(registers, memory));
-}
-word IndirectAndIncrementWordAccess::read(CPU::RegisterSet &registers,
-                                          MemoryBus &memory) const {
-  auto result = m_inner.read(registers, memory);
-  auto ptr = m_pointer->read(registers, memory);
-  ++ptr;
-  ++ptr;
-  m_pointer->write(registers, memory, ptr);
-  return result;
-}
-void IndirectAndIncrementWordAccess::write(CPU::RegisterSet &registers,
-                                           MemoryBus &memory, word value) {
-  m_inner.write(registers, memory, value);
-  auto ptr = m_pointer->read(registers, memory);
-  ++ptr;
-  ++ptr;
-  m_pointer->write(registers, memory, ptr);
-}
-word IndirectAndDecrementWordAccess::read(CPU::RegisterSet &registers,
-                                          MemoryBus &memory) const {
-  auto result = m_inner.read(registers, memory);
-  auto ptr = m_pointer->read(registers, memory);
-  --ptr;
-  --ptr;
-  m_pointer->write(registers, memory, ptr);
-  return result;
-}
-void IndirectAndDecrementWordAccess::write(CPU::RegisterSet &registers,
-                                           MemoryBus &memory, word value) {
-  m_inner.write(registers, memory, value);
-  auto ptr = m_pointer->read(registers, memory);
-  --ptr;
-  --ptr;
-  m_pointer->write(registers, memory, ptr);
 }
 } // namespace greenboy::instructions

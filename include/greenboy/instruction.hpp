@@ -59,7 +59,7 @@ public:
  * @brief Pops a 16-bit value from the stack into the PC.
  *
  */
-class RET : public Instruction {
+class Return : public Instruction {
 public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
@@ -70,21 +70,12 @@ public:
  * address specified by the new content of PC.
  *
  */
-class RST : public Instruction {
+class Restart : public Instruction {
   word m_address;
 
 public:
-  explicit RST(word address) : m_address{address} {}
+  explicit Restart(word address) : m_address{address} {}
 
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Instructions that moves the value of SP + e to register HL
- *
- */
-class LOAD_HL_SP_e : public Instruction {
-public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
@@ -241,32 +232,6 @@ class IndirectWordAccess : public WordAccess {
 public:
   IndirectWordAccess(std::shared_ptr<WordAccess> pointer)
       : m_pointer(std::move(pointer)) {}
-
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-};
-
-class IndirectAndIncrementWordAccess : public WordAccess {
-  IndirectWordAccess m_inner;
-  std::shared_ptr<WordAccess> m_pointer;
-
-public:
-  IndirectAndIncrementWordAccess(std::shared_ptr<WordAccess> pointer)
-      : m_inner(pointer), m_pointer(pointer) {}
-
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-};
-
-class IndirectAndDecrementWordAccess : public WordAccess {
-  IndirectWordAccess m_inner;
-  std::shared_ptr<WordAccess> m_pointer;
-
-public:
-  IndirectAndDecrementWordAccess(std::shared_ptr<WordAccess> pointer)
-      : m_inner(pointer), m_pointer(pointer) {}
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,

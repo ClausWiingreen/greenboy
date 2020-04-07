@@ -52,7 +52,7 @@ TEST(Instruction, Call) {
   EXPECT_EQ(registers, expected_register_state);
 }
 
-TEST(Instruction, RET) {
+TEST(Instruction, Return) {
   CPU::RegisterSet registers{};
   registers.pc = word{0x3020};
   registers.sp = word{0xfffc};
@@ -60,7 +60,7 @@ TEST(Instruction, RET) {
   EXPECT_CALL(memory, read(word{0xfffe})).WillOnce(Return(byte{0x01}));
   EXPECT_CALL(memory, read(word{0xfffd})).WillOnce(Return(byte{0x03}));
 
-  auto time_passed = RET{}.execute(registers, memory);
+  auto time_passed = instructions::Return{}.execute(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x0103};
@@ -105,7 +105,7 @@ TEST(Instruction, ResetBit) {
   EXPECT_EQ(registers, expected_register_state);
 }
 
-TEST(Instruction, RST) {
+TEST(Instruction, Restart) {
   CPU::RegisterSet registers{};
   registers.pc = word{0x0103};
   registers.sp = word{0xfffe};
@@ -113,7 +113,7 @@ TEST(Instruction, RST) {
   EXPECT_CALL(memory, write(word{0xfffe}, byte{0x01}));
   EXPECT_CALL(memory, write(word{0xfffd}, byte{0x04}));
 
-  auto time_passed = RST{word{0x0008}}.execute(registers, memory);
+  auto time_passed = Restart{word{0x0008}}.execute(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.pc = word{0x0008};
