@@ -36,49 +36,6 @@ public:
 };
 
 namespace instructions {
-/**
- * @brief a no operation instruction.
- * advanced the pc by one over 4 cycles.
- */
-class NoOperation : public Instruction {
-public:
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief pushes the address after this instruction to the stack and loads the
- * immediate 16-bit value into the PC.
- *
- */
-class Call : public Instruction {
-public:
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Pops a 16-bit value from the stack into the PC.
- *
- */
-class Return : public Instruction {
-public:
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief pushes the current value of the PC to the memory stack and loads to
- * the PC the page 0 memory address. The next instruction is fetched from the
- * address specified by the new content of PC.
- *
- */
-class Restart : public Instruction {
-  word m_address;
-
-public:
-  explicit Restart(word address) : m_address{address} {}
-
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
 class ByteAccess {
 public:
   ByteAccess() = default;
@@ -259,65 +216,6 @@ public:
   WordLoad(std::shared_ptr<WordAccess> dest,
            std::shared_ptr<const WordAccess> src)
       : m_destination(std::move(dest)), m_source(std::move(src)) {}
-
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Instructions that pushes the value of a 16 bit register to the stack
- *
- */
-class Push : public Instruction {
-  std::shared_ptr<WordRegisterAccess> m_register;
-
-public:
-  explicit Push(std::shared_ptr<WordRegisterAccess> reg)
-      : m_register(std::move(reg)) {}
-
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Instructions that pops a 16 bit value from the stack and places it
- * into the 16 bit register
- *
- */
-class Pop : public Instruction {
-  std::shared_ptr<WordRegisterAccess> m_register;
-
-public:
-  explicit Pop(std::shared_ptr<WordRegisterAccess> reg)
-      : m_register(std::move(reg)) {}
-
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Instruction that writes 1 to a given bit on a given register
- *
- */
-class SetBit : public Instruction {
-  unsigned m_bit;
-  std::shared_ptr<ByteRegisterAccess> m_reg;
-
-public:
-  SetBit(unsigned bit, std::shared_ptr<ByteRegisterAccess> reg)
-      : m_bit(bit), m_reg(std::move(reg)) {}
-
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
-
-/**
- * @brief Instructions that writes 0 to a given bit on a given register.
- *
- */
-class ResetBit : public Instruction {
-  unsigned m_bit;
-  std::shared_ptr<ByteRegisterAccess> m_reg;
-
-public:
-  ResetBit(unsigned bit, std::shared_ptr<ByteRegisterAccess> reg)
-      : m_bit(bit), m_reg(std::move(reg)) {}
 
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };

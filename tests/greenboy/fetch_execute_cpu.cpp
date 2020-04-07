@@ -28,29 +28,4 @@ TEST(FetchExecuteCPUCtor, RejectsNullMemoryBus) {
       (FetchExecuteCPU{nullptr, std::make_unique<MockOpcodeTranslator>()}),
       std::invalid_argument);
 }
-
-TEST(FetchExecuteCPUUpdate, FetchesFromMemory) {
-  auto memory = std::make_unique<MockMemoryBus>();
-  EXPECT_CALL(*memory, read(_));
-  instructions::NoOperation instruction;
-  auto controlUnit = std::make_unique<MockOpcodeTranslator>();
-  EXPECT_CALL(*controlUnit, translate(_)).WillOnce(ReturnRef(instruction));
-
-  FetchExecuteCPU cpu{std::move(memory), std::move(controlUnit)};
-
-  cpu.update();
-}
-
-TEST(FetchExecuteCPUUpdate, FirstFetchIsFromAddress0) {
-  auto memory = std::make_unique<MockMemoryBus>();
-  EXPECT_CALL(*memory, read(word{0x0000}));
-  instructions::NoOperation instruction;
-  auto controlUnit = std::make_unique<MockOpcodeTranslator>();
-  EXPECT_CALL(*controlUnit, translate(_))
-      .WillOnce(ReturnRef(instruction));
-
-  FetchExecuteCPU cpu{std::move(memory), std::move(controlUnit)};
-
-  cpu.update();
-}
 } // namespace

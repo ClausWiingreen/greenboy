@@ -1,64 +1,6 @@
 #include "greenboy/instruction.hpp"
 
 namespace greenboy::instructions {
-cycles NoOperation::execute(CPU::RegisterSet & /* registers */,
-                            MemoryBus & /* memory */) const {
-  return cycles{4};
-}
-
-cycles Call::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  auto low = memory.read(registers.pc++);
-  auto high = memory.read(registers.pc++);
-
-  memory.write(registers.sp--, registers.pc.high());
-  memory.write(registers.sp--, registers.pc.low());
-
-  registers.pc = word(low, high);
-  return cycles{24};
-}
-
-cycles Return::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  registers.pc = word(memory.read(++registers.sp), memory.read(++registers.sp));
-  return cycles{16};
-}
-
-cycles Restart::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  ++registers.pc;
-
-  memory.write(registers.sp--, registers.pc.high());
-  memory.write(registers.sp--, registers.pc.low());
-
-  registers.pc = m_address;
-  return cycles{16};
-}
-
-cycles SetBit::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  m_reg->write(registers, memory,
-               m_reg->read(registers, memory) |
-                   byte{static_cast<uint8_t>(1u << m_bit)});
-  return cycles{8};
-}
-cycles ResetBit::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  m_reg->write(registers, memory,
-               m_reg->read(registers, memory) &
-                   byte{static_cast<uint8_t>(~(1u << m_bit))});
-  return cycles{8};
-}
-
-cycles Push::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  auto reg = m_register->read(registers, memory);
-  memory.write(registers.sp--, reg.high());
-  memory.write(registers.sp--, reg.low());
-  return cycles{16};
-}
-
-cycles Pop::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  auto high = memory.read(++registers.sp);
-  auto low = memory.read(++registers.sp);
-  m_register->write(registers, memory, word{high, low});
-  return cycles{12};
-}
-
 constexpr bool is_bit_set(unsigned value, unsigned index) {
   return (value & (1u << index)) == (1u << index);
 }
