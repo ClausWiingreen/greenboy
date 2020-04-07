@@ -35,7 +35,7 @@ TEST(Instruction, NoOperation) {
 
 TEST(Instruction, Call) {
   CPU::RegisterSet registers{};
-  registers.pc = word{0x0100};
+  registers.pc = word{0x0101};
   registers.sp = word{0xfffe};
   MockMemoryBus memory;
   EXPECT_CALL(memory, read(word{0x0101})).WillOnce(Return(byte{0x20}));

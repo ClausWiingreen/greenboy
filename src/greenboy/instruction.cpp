@@ -319,16 +319,6 @@ void WordRegisterAccess::write(CPU::RegisterSet &registers,
     throw std::runtime_error("Tried to write to an unknown 16 bit register");
   }
 }
-
-std::shared_ptr<WordRegisterAccess> WordRegisterAccess::bc() {
-  static std::weak_ptr<WordRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R8::bc);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
 std::shared_ptr<WordRegisterAccess> WordRegisterAccess::bc() {
   static std::weak_ptr<WordRegisterAccess> instance;
   if (instance.expired()) {

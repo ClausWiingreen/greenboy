@@ -448,4 +448,3 @@ inline void examples() {
 }
 } // namespace instructions
 } // namespace greenboy
-} // namespace instructions
