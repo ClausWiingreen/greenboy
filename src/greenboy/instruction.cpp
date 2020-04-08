@@ -1,9 +1,6 @@
 #include "greenboy/instruction.hpp"
 
 namespace greenboy::instructions {
-constexpr bool is_bit_set(unsigned value, unsigned index) {
-  return (value & (1u << index)) == (1u << index);
-}
 
 ByteLoad::ByteLoad(std::shared_ptr<ByteAccess> dest,
                    std::shared_ptr<const ByteAccess> src)
@@ -265,20 +262,7 @@ cycles WordLoad::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   m_destination->write(registers, memory, m_source->read(registers, memory));
   return cycles();
 }
-word IndirectWordAccess::read(CPU::RegisterSet &registers,
-                              MemoryBus &memory) const {
-  auto ptr = m_pointer->read(registers, memory);
-  auto low = memory.read(ptr);
-  ++ptr;
-  auto high = memory.read(ptr);
-  return word(high, low);
-}
-void IndirectWordAccess::write(CPU::RegisterSet &registers, MemoryBus &memory,
-                               word value) {
-  auto ptr = m_pointer->read(registers, memory);
-  memory.write(ptr, value.low());
-  memory.write(ptr, value.high());
-}
+
 word DoubleByteWordAccess::read(CPU::RegisterSet &registers,
                                 MemoryBus &memory) const {
   return word(m_high->read(registers, memory), m_low->read(registers, memory));

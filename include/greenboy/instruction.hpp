@@ -139,7 +139,8 @@ class IndirectAndDecrementByteAccess : public ByteAccess {
   std::shared_ptr<WordAccess> m_pointer;
 
 public:
-  explicit IndirectAndDecrementByteAccess(const std::shared_ptr<WordAccess>& pointer)
+  explicit IndirectAndDecrementByteAccess(
+      const std::shared_ptr<WordAccess> &pointer)
       : m_inner(pointer), m_pointer(pointer) {}
 
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
@@ -187,18 +188,6 @@ public:
              word value) override;
 };
 
-class IndirectWordAccess : public WordAccess {
-  std::shared_ptr<WordAccess> m_pointer;
-
-public:
-  explicit IndirectWordAccess(std::shared_ptr<WordAccess> pointer)
-      : m_pointer(std::move(pointer)) {}
-
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-};
-
 // Instructions
 
 class ByteLoad : public Instruction {
@@ -223,59 +212,5 @@ public:
 
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
-
-// only here for checking and consistency
-inline void examples() {
-  ByteLoad ld_r_r{ByteRegisterAccess::b(), ByteRegisterAccess::c()};
-  ByteLoad ld_r_n{ByteRegisterAccess::d(),
-                  std::make_shared<ImmediateByteAccess>()};
-  ByteLoad le_r_HL{
-      ByteRegisterAccess::e(),
-      std::make_shared<IndirectByteAccess>(WordRegisterAccess::hl())};
-  ByteLoad ld_HL_r{
-      std::make_shared<IndirectByteAccess>(WordRegisterAccess::hl()),
-      ByteRegisterAccess::h()};
-  ByteLoad ld_A_DE{
-      ByteRegisterAccess::a(),
-      std::make_shared<IndirectByteAccess>(WordRegisterAccess::de())};
-  ByteLoad ld_A_C{ByteRegisterAccess::a(),
-                  std::make_shared<IndirectByteAccess>(
-                      std::make_shared<DoubleByteWordAccess>(
-                          std::make_shared<ConstantByteAccess>(byte{0xff}),
-                          ByteRegisterAccess::c()))};
-  ByteLoad ld_C_A{std::make_shared<IndirectByteAccess>(
-                      std::make_shared<DoubleByteWordAccess>(
-                          std::make_shared<ConstantByteAccess>(byte{0xff}),
-                          ByteRegisterAccess::c())),
-                  ByteRegisterAccess::a()};
-  ByteLoad ld_A_n{ByteRegisterAccess::a(),
-                  std::make_shared<IndirectByteAccess>(
-                      std::make_shared<DoubleByteWordAccess>(
-                          std::make_shared<ConstantByteAccess>(byte{0xff}),
-                          std::make_shared<ImmediateByteAccess>()))};
-  ByteLoad ld_n_A{std::make_shared<IndirectByteAccess>(
-                      std::make_shared<DoubleByteWordAccess>(
-                          std::make_shared<ConstantByteAccess>(byte{0xff}),
-                          std::make_shared<ImmediateByteAccess>())),
-                  ByteRegisterAccess::a()};
-  ByteLoad ld_nn_A{std::make_shared<IndirectByteAccess>(
-                       std::make_shared<ImmediateWordAccess>()),
-                   ByteRegisterAccess::a()};
-  ByteLoad ld_A_nn{ByteRegisterAccess::a(),
-                   std::make_shared<IndirectByteAccess>(
-                       std::make_shared<ImmediateWordAccess>())};
-  ByteLoad ld_A_HLI{ByteRegisterAccess::a(),
-                    std::make_shared<IndirectAndIncrementByteAccess>(
-                        WordRegisterAccess::hl())};
-  ByteLoad ld_A_HLD{ByteRegisterAccess::a(),
-                    std::make_shared<IndirectAndDecrementByteAccess>(
-                        WordRegisterAccess::hl())};
-  ByteLoad ld_HLI_A{std::make_shared<IndirectAndIncrementByteAccess>(
-                        WordRegisterAccess::hl()),
-                    ByteRegisterAccess::a()};
-  ByteLoad ld_HLD_A{std::make_shared<IndirectAndDecrementByteAccess>(
-                        WordRegisterAccess::hl()),
-                    ByteRegisterAccess::a()};
-}
 } // namespace instructions
 } // namespace greenboy

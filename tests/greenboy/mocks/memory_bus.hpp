@@ -1,3 +1,5 @@
+#pragma once
+
 #include "greenboy/memory_bus.hpp"
 #include "gmock/gmock.h"
 

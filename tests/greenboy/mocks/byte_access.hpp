@@ -3,13 +3,13 @@
 #include "greenboy/instruction.hpp"
 #include "gmock/gmock.h"
 
-class MockWordAccess : public greenboy::instructions::WordAccess {
+class MockByteAccess : public greenboy::instructions::ByteAccess {
 public:
-  MOCK_METHOD(greenboy::word, read,
+  MOCK_METHOD(greenboy::byte, read,
               (greenboy::CPU::RegisterSet &, greenboy::MemoryBus &),
               (const, override));
   MOCK_METHOD(void, write,
               (greenboy::CPU::RegisterSet &, greenboy::MemoryBus &,
-               greenboy::word),
+               greenboy::byte),
               (override));
 };

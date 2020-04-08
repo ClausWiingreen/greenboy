@@ -2,6 +2,8 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include "mocks/byte_access.hpp"
+#include "mocks/memory_bus.hpp"
 #include "mocks/word_access.hpp"
 
 namespace {
@@ -9,18 +11,6 @@ using namespace greenboy;
 using namespace instructions;
 using ::testing::_;
 using ::testing::Return;
-
-class MockMemoryBus : public MemoryBus {
-public:
-  MOCK_METHOD(byte, read, (word), (const, override));
-  MOCK_METHOD(void, write, (word, byte), (override));
-};
-
-class MockByteAccess : public ByteAccess {
-public:
-  MOCK_METHOD(byte, read, (CPU::RegisterSet &, MemoryBus &), (const, override));
-  MOCK_METHOD(void, write, (CPU::RegisterSet &, MemoryBus &, byte), (override));
-};
 
 TEST(ByteLoad, RejectsNullPointers) {
   auto mocked_access = std::make_shared<MockByteAccess>();
@@ -76,6 +66,22 @@ TEST(ByteRegisterAccess, WritesToRegister) {
 
   access.write(registers, memory, byte{0x34});
   EXPECT_EQ(registers.c, byte{0x34});
+}
+
+TEST(ByteRegisterAccess, ReadsFromInvalidRegistersThrow) {
+  ByteRegisterAccess access{(CPU::R8)-1};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_THROW(access.read(registers, memory), std::runtime_error);
+}
+
+TEST(ByteRegisterAccess, WritesToInvalidRegistersThrow) {
+  ByteRegisterAccess access{(CPU::R8)-1};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_THROW(access.write(registers, memory, byte{0x34}), std::runtime_error);
 }
 
 TEST(ImmediateByteAccess, ReadsTheNextByte) {
@@ -256,13 +262,13 @@ TEST(IndirectAndDecrementByteAccess, PointerIsIncrementedAfterWrite) {
 }
 
 TEST(WordRegisterAccess, ReadsFromRegister) {
-  WordRegisterAccess access{CPU::R16::BC};
+  WordRegisterAccess access{CPU::R16::AF};
   MockMemoryBus memory;
   CPU::RegisterSet registers{};
-  registers.b = byte{0x12};
-  registers.c = byte{0x43};
+  registers.a = byte{0x12};
+  registers.f = CPU::Flags{byte{0x43}};
 
-  EXPECT_EQ(access.read(registers, memory), word{0x1243});
+  EXPECT_EQ(access.read(registers, memory), word{0x1240});
 }
 
 TEST(WordRegisterAccess, WritesToRegister) {
@@ -275,4 +281,80 @@ TEST(WordRegisterAccess, WritesToRegister) {
   EXPECT_EQ(registers.e, byte{0x65});
 }
 
+TEST(WordRegisterAccess, ReadsFromInvalidRegisterThrow) {
+  WordRegisterAccess access{(CPU::R16)-1};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+  registers.a = byte{0x12};
+  registers.f = CPU::Flags{byte{0x43}};
+
+  EXPECT_THROW(access.read(registers, memory), std::runtime_error);
+}
+
+TEST(WordRegisterAccess, WritesToInvalidRegisterThrow) {
+  WordRegisterAccess access{(CPU::R16)-1};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_THROW(access.write(registers, memory, word{0x3465}),
+               std::runtime_error);
+}
+TEST(ImmediateWordAccess, ReadImmediateValue) {
+  ImmediateWordAccess access{};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+  registers.pc = word{0x3000};
+  EXPECT_CALL(memory, read(word{0x3000})).WillOnce(Return(byte{0xde}));
+  EXPECT_CALL(memory, read(word{0x3001})).WillOnce(Return(byte{0x7b}));
+
+  EXPECT_EQ(access.read(registers, memory), word{0x7bde});
+}
+
+TEST(ImmediateWordAccess, ReadsIncrementTheProgramCounterByTwo) {
+  ImmediateWordAccess access{};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+  registers.pc = word{0x3000};
+  EXPECT_CALL(memory, read(word{0x3000}));
+  EXPECT_CALL(memory, read(word{0x3001}));
+
+  access.read(registers, memory);
+
+  EXPECT_EQ(registers.pc, word{0x3002});
+}
+
+TEST(ImmediateWordAccess, RejectsWrites) {
+  ImmediateWordAccess access{};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_THROW(access.write(registers, memory, word{0x3465}),
+               std::runtime_error);
+}
+
+TEST(DoubleByteWordAccess, DelegateReadsToByteAccesses) {
+  auto high = std::make_shared<MockByteAccess>();
+  auto low = std::make_shared<MockByteAccess>();
+  DoubleByteWordAccess access(high, low);
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*high, read(_, _)).WillOnce(Return(byte{0xde}));
+  EXPECT_CALL(*low, read(_, _)).WillOnce(Return(byte{0x7b}));
+
+  EXPECT_EQ(access.read(registers, memory), word{0xde7b});
+}
+
+TEST(DoubleByteWordAccess, DelegateWritesToByteAccesses) {
+  auto high = std::make_shared<MockByteAccess>();
+  auto low = std::make_shared<MockByteAccess>();
+  DoubleByteWordAccess access(high, low);
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*high, write(_, _, byte{0x05}));
+  EXPECT_CALL(*low, write(_, _, byte{0x31}));
+
+  access.write(registers, memory, word{0x0531});
+}
 } // namespace

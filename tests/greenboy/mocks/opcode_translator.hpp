@@ -1,3 +1,5 @@
+#pragma once
+
 #include "greenboy/opcode_translator.hpp"
 #include "gmock/gmock.h"
 

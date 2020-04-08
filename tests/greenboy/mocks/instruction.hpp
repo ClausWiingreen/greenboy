@@ -1,3 +1,5 @@
+#pragma once
+
 #include "greenboy/instruction.hpp"
 #include "gmock/gmock.h"
 
