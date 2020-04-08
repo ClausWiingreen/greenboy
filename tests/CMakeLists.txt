@@ -14,6 +14,7 @@ macro(greenboy_add_test TESTNAME)
     PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
     )
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+    list(APPEND TestLibraries ${TESTNAME})
 endmacro()
 
 greenboy_add_test(FetchExecuteCPU greenboy/fetch_execute_cpu.cpp)
@@ -26,9 +27,7 @@ if(GREENBOY_COVERAGE)
     NAME coverage 
     EXECUTABLE ctest 
     DEPENDENCIES 
-      Gameboy 
-      FetchExecuteCPU
-      Instructions
+      ${TestLibraries}
     LCOV_ARGS "--no-external"
     EXCLUDE "*/external/**"
   )
