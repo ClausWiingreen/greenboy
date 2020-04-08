@@ -32,7 +32,7 @@ public:
    * @return the number of cpu cycles it took to execute this instruction
    */
   virtual cycles execute(CPU::RegisterSet &registers,
-                         MemoryBus & /* memory */) const = 0;
+                         MemoryBus &memory) const = 0;
 };
 
 namespace data_access {
@@ -184,6 +184,16 @@ public:
   ByteLoad(std::shared_ptr<data_access::ByteAccess> dest,
            std::shared_ptr<const data_access::ByteAccess> src);
 
+  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+};
+
+class WordLoad : public Instruction {
+  std::shared_ptr<data_access::WordAccess> m_destination;
+  std::shared_ptr<const data_access::WordAccess> m_source;
+
+public:
+  WordLoad(std::shared_ptr<data_access::WordAccess> dest,
+           std::shared_ptr<const data_access::WordAccess> src);
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
