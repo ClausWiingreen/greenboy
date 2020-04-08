@@ -1,3 +1,4 @@
+
 #pragma once
 #include <cstdint>
 
@@ -9,14 +10,16 @@ namespace greenboy {
  */
 class MemoryBus {
 public:
+  //! @cond Doxygen_Suppress
   MemoryBus() = default;
   MemoryBus(const MemoryBus &) = delete;
-  MemoryBus(MemoryBus&&) = delete;
-  
+  MemoryBus(MemoryBus &&) = delete;
+
   virtual ~MemoryBus() = default;
 
-  MemoryBus& operator=(const MemoryBus &) = delete;
-  MemoryBus& operator=(MemoryBus&&) = delete;
+  MemoryBus &operator=(const MemoryBus &) = delete;
+  MemoryBus &operator=(MemoryBus &&) = delete;
+  //! @endcond
 
   /**
    * Performs a memory mapped read which delegates part of the memory
@@ -25,7 +28,7 @@ public:
    * \param address the address to read from.
    * \returns the byte at the address pointed to by the address.
    */
-  virtual byte read(word address) = 0;
+  virtual byte read(word address) const = 0;
 
   /**
    * Performs a memory mapped write which delegates part of the memory

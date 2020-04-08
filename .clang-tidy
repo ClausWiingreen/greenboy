@@ -1,2 +1,2 @@
-Checks:          '*,-llvm-header-guard'
+Checks:          '*,-llvm-header-guard,-google-runtime-references,-fuchsia-overloaded-operator,-cert-dcl21-cpp,-google-readability-namespace-comments,-llvm-namespace-comment'
 HeaderFilterRegex: '.*'
