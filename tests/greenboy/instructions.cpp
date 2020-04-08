@@ -2,6 +2,8 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include "mocks/word_access.hpp"
+
 namespace {
 using namespace greenboy;
 using namespace instructions;
@@ -41,6 +43,22 @@ TEST(ByteLoad, TakesTheReadValueFromSourceAndWritesItToDestination) {
   ByteLoad{destination, source}.execute(registers, memory);
 }
 
+TEST(ConstantByteAccess, ReadsTheConstantValue) {
+  ConstantByteAccess access{byte{0x0a}};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_EQ(access.read(registers, memory), byte{0x0a});
+}
+
+TEST(ConstantByteAccess, RejectsWrites) {
+  ConstantByteAccess access{byte{0x0a}};
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_THROW(access.write(registers, memory, byte{0x34}), std::runtime_error);
+}
+
 TEST(ByteRegisterAccess, ReadsFromRegister) {
   ByteRegisterAccess access{CPU::R8::B};
   MockMemoryBus memory;
@@ -70,12 +88,171 @@ TEST(ImmediateByteAccess, ReadsTheNextByte) {
   EXPECT_EQ(access.read(registers, memory), byte{0x54});
 }
 
+TEST(ImmediateByteAccess, ReadsIncrementTheProgramCounter) {
+  ImmediateByteAccess access;
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+  registers.pc = word{0x0100};
+
+  access.read(registers, memory);
+
+  EXPECT_EQ(registers.pc, word{0x0101});
+}
+
 TEST(ImmediateByteAccess, RejectsWrites) {
   ImmediateByteAccess access;
   MockMemoryBus memory;
   CPU::RegisterSet registers{};
 
   EXPECT_THROW(access.write(registers, memory, byte{0x34}), std::runtime_error);
+}
+
+TEST(IndirectByteAccess,
+     ReadsAreDelegatedToMemoryLocationsDictatedByThePointer) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectByteAccess access{std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillOnce(Return(word{0x1234}));
+  EXPECT_CALL(memory, read(word{0x1234})).WillOnce(Return(byte{0xde}));
+
+  EXPECT_EQ(access.read(registers, memory), byte{0xde});
+}
+
+TEST(IndirectByteAccess,
+     WritesAreDelegatedToMemoryLocationsDictatedByThePointer) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectByteAccess access{std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillOnce(Return(word{0x1234}));
+  EXPECT_CALL(memory, write(word{0x1234}, byte{0xde}));
+
+  access.write(registers, memory, byte{0xde});
+}
+
+TEST(IndirectAndIncrementByteAccess,
+     ReadsAreDelegatedToMemoryLocationsDictatedByThePointer) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectAndIncrementByteAccess access{
+      std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillRepeatedly(Return(word{0x1234}));
+  EXPECT_CALL(memory, read(word{0x1234})).WillOnce(Return(byte{0xde}));
+
+  EXPECT_EQ(access.read(registers, memory), byte{0xde});
+}
+
+TEST(IndirectAndIncrementByteAccess,
+     WritesAreDelegatedToMemoryLocationsDictatedByThePointer) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectAndIncrementByteAccess access{
+      std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillRepeatedly(Return(word{0x1234}));
+  EXPECT_CALL(memory, write(word{0x1234}, byte{0xde}));
+
+  access.write(registers, memory, byte{0xde});
+}
+
+TEST(IndirectAndIncrementByteAccess, PointerIsIncrementedAfterRead) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectAndIncrementByteAccess access{
+      std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillRepeatedly(Return(word{0x1234}));
+  EXPECT_CALL(memory, read(word{0x1234}));
+  EXPECT_CALL(*pointer, write(_, _, word{0x1235}));
+
+  access.read(registers, memory);
+}
+
+TEST(IndirectAndIncrementByteAccess, PointerIsIncrementedAfterWrite) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectAndIncrementByteAccess access{
+      std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillRepeatedly(Return(word{0x1234}));
+  EXPECT_CALL(memory, write(word{0x1234}, _));
+  EXPECT_CALL(*pointer, write(_, _, word{0x1235}));
+
+  access.write(registers, memory, byte{0xfa});
+}
+
+TEST(IndirectAndDecrementByteAccess,
+     ReadsAreDelegatedToMemoryLocationsDictatedByThePointer) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectAndDecrementByteAccess access{
+      std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillRepeatedly(Return(word{0x1234}));
+  EXPECT_CALL(memory, read(word{0x1234})).WillOnce(Return(byte{0xde}));
+
+  EXPECT_EQ(access.read(registers, memory), byte{0xde});
+}
+
+TEST(IndirectAndDecrementByteAccess,
+     WritesAreDelegatedToMemoryLocationsDictatedByThePointer) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectAndDecrementByteAccess access{
+      std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillRepeatedly(Return(word{0x1234}));
+  EXPECT_CALL(memory, write(word{0x1234}, byte{0xde}));
+
+  access.write(registers, memory, byte{0xde});
+}
+
+TEST(IndirectAndDecrementByteAccess, PointerIsDecrementedAfterRead) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectAndDecrementByteAccess access{
+      std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillRepeatedly(Return(word{0x1234}));
+  EXPECT_CALL(memory, read(word{0x1234}));
+  EXPECT_CALL(*pointer, write(_, _, word{0x1233}));
+
+  access.read(registers, memory);
+}
+
+TEST(IndirectAndDecrementByteAccess, PointerIsIncrementedAfterWrite) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectAndDecrementByteAccess access{
+      std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillRepeatedly(Return(word{0x1234}));
+  EXPECT_CALL(memory, write(word{0x1234}, _));
+  EXPECT_CALL(*pointer, write(_, _, word{0x1233}));
+
+  access.write(registers, memory, byte{0xfa});
 }
 
 TEST(WordRegisterAccess, ReadsFromRegister) {

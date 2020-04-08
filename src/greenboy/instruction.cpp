@@ -243,11 +243,11 @@ std::shared_ptr<WordRegisterAccess> WordRegisterAccess::sp() {
   }
   return instance.lock();
 }
-byte ByteConstantAccess::read(CPU::RegisterSet & /* registers */,
+byte ConstantByteAccess::read(CPU::RegisterSet & /* registers */,
                               MemoryBus & /* memory */) const {
   return m_value;
 }
-void ByteConstantAccess::write(CPU::RegisterSet & /* registers */,
+void ConstantByteAccess::write(CPU::RegisterSet & /* registers */,
                                MemoryBus & /* memory */, byte /* value */) {
   throw std::runtime_error("Tried to write to a constant 8 bit value");
 }

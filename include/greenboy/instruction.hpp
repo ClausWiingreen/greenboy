@@ -71,11 +71,11 @@ public:
                      word value) = 0;
 };
 
-class ByteConstantAccess : public ByteAccess {
+class ConstantByteAccess : public ByteAccess {
   byte m_value;
 
 public:
-  explicit ByteConstantAccess(byte value) : m_value(value) {}
+  explicit ConstantByteAccess(byte value) : m_value(value) {}
 
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
@@ -240,21 +240,21 @@ inline void examples() {
   ByteLoad ld_A_C{ByteRegisterAccess::a(),
                   std::make_shared<IndirectByteAccess>(
                       std::make_shared<DoubleByteWordAccess>(
-                          std::make_shared<ByteConstantAccess>(byte{0xff}),
+                          std::make_shared<ConstantByteAccess>(byte{0xff}),
                           ByteRegisterAccess::c()))};
   ByteLoad ld_C_A{std::make_shared<IndirectByteAccess>(
                       std::make_shared<DoubleByteWordAccess>(
-                          std::make_shared<ByteConstantAccess>(byte{0xff}),
+                          std::make_shared<ConstantByteAccess>(byte{0xff}),
                           ByteRegisterAccess::c())),
                   ByteRegisterAccess::a()};
   ByteLoad ld_A_n{ByteRegisterAccess::a(),
                   std::make_shared<IndirectByteAccess>(
                       std::make_shared<DoubleByteWordAccess>(
-                          std::make_shared<ByteConstantAccess>(byte{0xff}),
+                          std::make_shared<ConstantByteAccess>(byte{0xff}),
                           std::make_shared<ImmediateByteAccess>()))};
   ByteLoad ld_n_A{std::make_shared<IndirectByteAccess>(
                       std::make_shared<DoubleByteWordAccess>(
-                          std::make_shared<ByteConstantAccess>(byte{0xff}),
+                          std::make_shared<ConstantByteAccess>(byte{0xff}),
                           std::make_shared<ImmediateByteAccess>())),
                   ByteRegisterAccess::a()};
   ByteLoad ld_nn_A{std::make_shared<IndirectByteAccess>(
