@@ -16,7 +16,7 @@ ByteLoad::ByteLoad(std::shared_ptr<data_access::ByteAccess> dest,
 
 cycles ByteLoad::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   m_destination->write(registers, memory, m_source->read(registers, memory));
-  return cycles(4);
+  return m_destination->access_time() + m_source->access_time();
 }
 WordLoad::WordLoad(std::shared_ptr<data_access::WordAccess> dest,
                    std::shared_ptr<const data_access::WordAccess> src)
@@ -36,8 +36,8 @@ cycles WordLoad::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
 } // namespace instructions
 
 namespace data_access {
-byte ByteRegisterAccess::read(CPU::RegisterSet &registers,
-                              MemoryBus & /* memory */) const {
+byte ByteRegister::read(CPU::RegisterSet &registers,
+                        MemoryBus & /* memory */) const {
   switch (m_reg) {
   case CPU::R8::B:
     return registers.b;
@@ -57,8 +57,8 @@ byte ByteRegisterAccess::read(CPU::RegisterSet &registers,
     throw std::runtime_error("Tried to read from an unknown 8 bit register");
   }
 }
-void ByteRegisterAccess::write(CPU::RegisterSet &registers,
-                               MemoryBus & /* memory */, byte value) {
+void ByteRegister::write(CPU::RegisterSet &registers, MemoryBus & /* memory */,
+                         byte value) {
   switch (m_reg) {
   case CPU::R8::B:
     registers.b = value;
@@ -85,24 +85,50 @@ void ByteRegisterAccess::write(CPU::RegisterSet &registers,
     throw std::runtime_error("Tried to write to an unknown 8 bit register");
   }
 }
-byte ImmediateByteAccess::read(CPU::RegisterSet &registers,
-                               MemoryBus &memory) const {
+std::shared_ptr<ByteRegister> ByteRegister::b() {
+  static auto instance = std::make_shared<ByteRegister>(CPU::R8::B);
+  return instance;
+}
+std::shared_ptr<ByteRegister> ByteRegister::c() {
+  static auto instance = std::make_shared<ByteRegister>(CPU::R8::C);
+  return instance;
+}
+std::shared_ptr<ByteRegister> ByteRegister::d() {
+  static auto instance = std::make_shared<ByteRegister>(CPU::R8::D);
+  return instance;
+}
+std::shared_ptr<ByteRegister> ByteRegister::h() {
+  static auto instance = std::make_shared<ByteRegister>(CPU::R8::H);
+  return instance;
+}
+std::shared_ptr<ByteRegister> ByteRegister::a() {
+  static auto instance = std::make_shared<ByteRegister>(CPU::R8::A);
+  return instance;
+}
+byte ImmediateByte::read(CPU::RegisterSet &registers, MemoryBus &memory) const {
   return memory.read(registers.pc++);
 }
-void ImmediateByteAccess::write(CPU::RegisterSet & /* registers */,
-                                MemoryBus & /* memory */, byte /* value */) {
+void ImmediateByte::write(CPU::RegisterSet & /* registers */,
+                          MemoryBus & /* memory */, byte /* value */) {
   throw std::runtime_error("Tried to write to immediate byte");
 }
-byte IndirectByteAccess::read(CPU::RegisterSet &registers,
-                              MemoryBus &memory) const {
+std::shared_ptr<ImmediateByte> ImmediateByte::instance() {
+  static auto instance = std::make_shared<ImmediateByte>();
+  return instance;
+}
+byte IndirectByte::read(CPU::RegisterSet &registers, MemoryBus &memory) const {
   return memory.read(m_pointer->read(registers, memory));
 }
-void IndirectByteAccess::write(CPU::RegisterSet &registers, MemoryBus &memory,
-                               byte value) {
+void IndirectByte::write(CPU::RegisterSet &registers, MemoryBus &memory,
+                         byte value) {
   memory.write(m_pointer->read(registers, memory), value);
 }
-word WordRegisterAccess::read(CPU::RegisterSet &registers,
-                              MemoryBus & /* memory */) const {
+std::shared_ptr<IndirectByte>
+IndirectByte::from(std::shared_ptr<WordAccess> pointer) {
+  return std::make_shared<IndirectByte>(std::move(pointer));
+}
+word WordRegister::read(CPU::RegisterSet &registers,
+                        MemoryBus & /* memory */) const {
   switch (m_reg) {
   case CPU::R16::BC:
     return word{registers.b, registers.c};
@@ -120,8 +146,8 @@ word WordRegisterAccess::read(CPU::RegisterSet &registers,
     throw std::runtime_error("Tried to read from an unknown 16 bit register");
   }
 }
-void WordRegisterAccess::write(CPU::RegisterSet &registers,
-                               MemoryBus & /* memory */, word value) {
+void WordRegister::write(CPU::RegisterSet &registers, MemoryBus & /* memory */,
+                         word value) {
   switch (m_reg) {
   case CPU::R16::BC:
     registers.b = value.high();
@@ -149,55 +175,78 @@ void WordRegisterAccess::write(CPU::RegisterSet &registers,
     throw std::runtime_error("Tried to write to an unknown 16 bit register");
   }
 }
-byte ConstantByteAccess::read(CPU::RegisterSet & /* registers */,
-                              MemoryBus & /* memory */) const {
+std::shared_ptr<WordRegister> WordRegister::bc() {
+  static auto instance = std::make_shared<WordRegister>(CPU::R16::BC);
+  return instance;
+}
+std::shared_ptr<WordRegister> WordRegister::de() {
+  static auto instance = std::make_shared<WordRegister>(CPU::R16::DE);
+  return instance;
+}
+std::shared_ptr<WordRegister> WordRegister::hl() {
+  static auto instance = std::make_shared<WordRegister>(CPU::R16::HL);
+  return instance;
+}
+byte ConstantByte::read(CPU::RegisterSet & /* registers */,
+                        MemoryBus & /* memory */) const {
   return m_value;
 }
-void ConstantByteAccess::write(CPU::RegisterSet & /* registers */,
-                               MemoryBus & /* memory */, byte /* value */) {
+void ConstantByte::write(CPU::RegisterSet & /* registers */,
+                         MemoryBus & /* memory */, byte /* value */) {
   throw std::runtime_error("Tried to write to a constant 8 bit value");
 }
-word ImmediateWordAccess::read(CPU::RegisterSet &registers,
-                               MemoryBus &memory) const {
-  auto low = m_access.read(registers, memory);
-  auto high = m_access.read(registers, memory);
-  return word(high, low);
-}
-void ImmediateWordAccess::write(CPU::RegisterSet & /* registers */,
-                                MemoryBus & /* memory */, word /* value */) {
-  throw std::runtime_error("Tried to write to immediate word");
+std::shared_ptr<ConstantByte> ConstantByte::from(byte value) {
+  return std::make_shared<ConstantByte>(value);
 }
 
-word DoubleByteWordAccess::read(CPU::RegisterSet &registers,
-                                MemoryBus &memory) const {
-  return word(m_high->read(registers, memory), m_low->read(registers, memory));
+word DoubleByteWord::read(CPU::RegisterSet &registers,
+                          MemoryBus &memory) const {
+  // Order is important if the source are both immediate values
+  auto low = m_low->read(registers, memory);
+  auto high = m_high->read(registers, memory);
+  return word(high, low);
 }
-void DoubleByteWordAccess::write(CPU::RegisterSet &registers, MemoryBus &memory,
-                                 word value) {
+void DoubleByteWord::write(CPU::RegisterSet &registers, MemoryBus &memory,
+                           word value) {
   m_high->write(registers, memory, value.high());
   m_low->write(registers, memory, value.low());
 }
-byte IndirectAndIncrementByteAccess::read(CPU::RegisterSet &registers,
-                                          MemoryBus &memory) const {
-  auto result = m_inner.read(registers, memory);
-  m_pointer->write(registers, memory, ++m_pointer->read(registers, memory));
-  return result;
+std::shared_ptr<DoubleByteWord>
+DoubleByteWord::from(std::shared_ptr<ByteAccess> high,
+                     std::shared_ptr<ByteAccess> low) {
+  return std::make_shared<DoubleByteWord>(std::move(high), std::move(low));
 }
-void IndirectAndIncrementByteAccess::write(CPU::RegisterSet &registers,
-                                           MemoryBus &memory, byte value) {
-  m_inner.write(registers, memory, value);
-  m_pointer->write(registers, memory, ++m_pointer->read(registers, memory));
+word IncrementingWord::read(CPU::RegisterSet &registers,
+                            MemoryBus &memory) const {
+  auto value = m_inner->read(registers, memory);
+  auto copy = value;
+  m_inner->write(registers, memory, ++value);
+  return copy;
 }
-byte IndirectAndDecrementByteAccess::read(CPU::RegisterSet &registers,
-                                          MemoryBus &memory) const {
-  auto result = m_inner.read(registers, memory);
-  m_pointer->write(registers, memory, --m_pointer->read(registers, memory));
-  return result;
+void DecrementingWord::write(CPU::RegisterSet & /* registers */,
+                             MemoryBus & /* memory */, word /* value */) {
+  throw std::runtime_error("Tried to write to an decrementing word");
 }
-void IndirectAndDecrementByteAccess::write(CPU::RegisterSet &registers,
-                                           MemoryBus &memory, byte value) {
-  m_inner.write(registers, memory, value);
-  m_pointer->write(registers, memory, --m_pointer->read(registers, memory));
+word DecrementingWord::read(CPU::RegisterSet &registers,
+                            MemoryBus &memory) const {
+  auto value = m_inner->read(registers, memory);
+  auto copy = value;
+  m_inner->write(registers, memory, --value);
+  return copy;
+}
+void IncrementingWord::write(CPU::RegisterSet & /* registers */,
+                             MemoryBus & /* memory */, word /* value */) {
+  throw std::runtime_error("Tried to write to an incrementing word");
+}
+
+std::shared_ptr<IncrementingWord>
+IncrementingWord::from(std::shared_ptr<WordAccess> inner) {
+  return std::make_shared<IncrementingWord>(std::move(inner));
+}
+
+std::shared_ptr<DecrementingWord>
+DecrementingWord::from(std::shared_ptr<WordAccess> inner) {
+  return std::make_shared<DecrementingWord>(std::move(inner));
 }
 } // namespace data_access
 } // namespace greenboy

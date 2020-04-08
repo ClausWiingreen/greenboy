@@ -51,6 +51,7 @@ public:
   virtual byte read(CPU::RegisterSet &registers, MemoryBus &memory) const = 0;
   virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
                      byte value) = 0;
+  virtual cycles access_time() const { return cycles{}; }
 };
 
 class WordAccess {
@@ -67,109 +68,130 @@ public:
   virtual word read(CPU::RegisterSet &registers, MemoryBus &memory) const = 0;
   virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
                      word value) = 0;
+  virtual cycles access_time() const { return cycles{}; }
 };
 
-class ConstantByteAccess : public ByteAccess {
+class ConstantByte : public ByteAccess {
   byte m_value;
 
 public:
-  explicit ConstantByteAccess(byte value) : m_value(value) {}
+  explicit ConstantByte(byte value) : m_value(value) {}
 
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              byte value) override;
+
+  static std::shared_ptr<ConstantByte> from(byte value);
 };
 
-class ByteRegisterAccess : public ByteAccess {
+class ByteRegister : public ByteAccess {
   CPU::R8 m_reg;
 
 public:
-  explicit ByteRegisterAccess(CPU::R8 reg) : m_reg(reg) {}
+  explicit ByteRegister(CPU::R8 reg) : m_reg(reg) {}
 
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              byte value) override;
+
+  static std::shared_ptr<ByteRegister> b();
+  static std::shared_ptr<ByteRegister> c();
+  static std::shared_ptr<ByteRegister> d();
+  static std::shared_ptr<ByteRegister> h();
+  static std::shared_ptr<ByteRegister> a();
 };
 
-class ImmediateByteAccess : public ByteAccess {
+class ImmediateByte : public ByteAccess {
 public:
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              byte value) override;
+  cycles access_time() const override { return cycles{4}; }
+
+  static std::shared_ptr<ImmediateByte> instance();
 };
 
-class IndirectByteAccess : public ByteAccess {
+class IndirectByte : public ByteAccess {
   std::shared_ptr<WordAccess> m_pointer;
 
 public:
-  explicit IndirectByteAccess(std::shared_ptr<WordAccess> pointer)
+  explicit IndirectByte(std::shared_ptr<WordAccess> pointer)
       : m_pointer(std::move(pointer)) {}
 
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              byte value) override;
+  cycles access_time() const override {
+    return cycles{4} + m_pointer->access_time();
+  }
+
+  static std::shared_ptr<IndirectByte>
+  from(std::shared_ptr<WordAccess> pointer);
 };
 
-class IndirectAndIncrementByteAccess : public ByteAccess {
-  IndirectByteAccess m_inner;
-  std::shared_ptr<WordAccess> m_pointer;
+class IncrementingWord : public WordAccess {
+  std::shared_ptr<WordAccess> m_inner;
 
 public:
-  explicit IndirectAndIncrementByteAccess(
-      const std::shared_ptr<WordAccess> &pointer)
-      : m_inner(pointer), m_pointer(pointer) {}
+  explicit IncrementingWord(std::shared_ptr<WordAccess> inner)
+      : m_inner(std::move(inner)) {}
 
-  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             byte value) override;
+             word value) override;
+
+  static std::shared_ptr<IncrementingWord>
+  from(std::shared_ptr<WordAccess> inner);
 };
 
-class IndirectAndDecrementByteAccess : public ByteAccess {
-  IndirectByteAccess m_inner;
-  std::shared_ptr<WordAccess> m_pointer;
+class DecrementingWord : public WordAccess {
+  std::shared_ptr<WordAccess> m_inner;
 
 public:
-  explicit IndirectAndDecrementByteAccess(
-      const std::shared_ptr<WordAccess> &pointer)
-      : m_inner(pointer), m_pointer(pointer) {}
+  explicit DecrementingWord(std::shared_ptr<WordAccess> inner)
+      : m_inner(std::move(inner)) {}
 
-  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             byte value) override;
+             word value) override;
+
+  static std::shared_ptr<DecrementingWord>
+  from(std::shared_ptr<WordAccess> inner);
 };
 
-class WordRegisterAccess : public WordAccess {
+class WordRegister : public WordAccess {
   CPU::R16 m_reg;
 
 public:
-  explicit WordRegisterAccess(CPU::R16 reg) : m_reg(reg) {}
+  explicit WordRegister(CPU::R16 reg) : m_reg(reg) {}
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              word value) override;
+
+  static std::shared_ptr<WordRegister> bc();
+  static std::shared_ptr<WordRegister> de();
+  static std::shared_ptr<WordRegister> hl();
 };
 
-class ImmediateWordAccess : public WordAccess {
-  ImmediateByteAccess m_access;
-
-public:
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-};
-
-class DoubleByteWordAccess : public WordAccess {
+class DoubleByteWord : public WordAccess {
   std::shared_ptr<ByteAccess> m_high;
   std::shared_ptr<ByteAccess> m_low;
 
 public:
-  DoubleByteWordAccess(std::shared_ptr<ByteAccess> high,
-                       std::shared_ptr<ByteAccess> low)
+  DoubleByteWord(std::shared_ptr<ByteAccess> high,
+                 std::shared_ptr<ByteAccess> low)
       : m_high(std::move(high)), m_low(std::move(low)) {}
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              word value) override;
+  cycles access_time() const override {
+    return m_high->access_time() + m_low->access_time();
+  }
+
+  static std::shared_ptr<DoubleByteWord> from(std::shared_ptr<ByteAccess> high,
+                                              std::shared_ptr<ByteAccess> low);
 };
 
 } // namespace data_access
