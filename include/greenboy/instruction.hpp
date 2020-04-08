@@ -125,7 +125,8 @@ class IndirectAndIncrementByteAccess : public ByteAccess {
   std::shared_ptr<WordAccess> m_pointer;
 
 public:
-  IndirectAndIncrementByteAccess(std::shared_ptr<WordAccess> pointer)
+  explicit IndirectAndIncrementByteAccess(
+      const std::shared_ptr<WordAccess> &pointer)
       : m_inner(pointer), m_pointer(pointer) {}
 
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
@@ -138,7 +139,7 @@ class IndirectAndDecrementByteAccess : public ByteAccess {
   std::shared_ptr<WordAccess> m_pointer;
 
 public:
-  IndirectAndDecrementByteAccess(std::shared_ptr<WordAccess> pointer)
+  explicit IndirectAndDecrementByteAccess(const std::shared_ptr<WordAccess>& pointer)
       : m_inner(pointer), m_pointer(pointer) {}
 
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
@@ -190,7 +191,7 @@ class IndirectWordAccess : public WordAccess {
   std::shared_ptr<WordAccess> m_pointer;
 
 public:
-  IndirectWordAccess(std::shared_ptr<WordAccess> pointer)
+  explicit IndirectWordAccess(std::shared_ptr<WordAccess> pointer)
       : m_pointer(std::move(pointer)) {}
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
