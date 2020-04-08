@@ -3,7 +3,7 @@
 #include "greenboy/instruction.hpp"
 #include "gmock/gmock.h"
 
-class MockByteAccess : public greenboy::instructions::ByteAccess {
+class MockByteAccess : public greenboy::data_access::ByteAccess {
 public:
   MOCK_METHOD(greenboy::byte, read,
               (greenboy::CPU::RegisterSet &, greenboy::MemoryBus &),

@@ -1,6 +1,6 @@
 macro(greenboy_add_test TESTNAME)
     # create an exectuable in which the tests will be stored
-    add_executable(${TESTNAME} ${ARGN})
+    add_executable(${TESTNAME} ${ARGN} "greenboy/instructions.cpp")
     # link the Google test infrastructure, mocking library, and a default main fuction to
     # the test executable.  Remove g_test_main if writing your own main function.
     
@@ -18,6 +18,7 @@ endmacro()
 
 greenboy_add_test(FetchExecuteCPU greenboy/fetch_execute_cpu.cpp)
 greenboy_add_test(Gameboy         greenboy/gameboy.cpp)
+greenboy_add_test(DataAccess      greenboy/data_access.cpp)
 greenboy_add_test(Instructions    greenboy/instructions.cpp)
 
 if(GREENBOY_COVERAGE)

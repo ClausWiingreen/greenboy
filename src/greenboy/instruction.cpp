@@ -1,9 +1,9 @@
 #include "greenboy/instruction.hpp"
 
-namespace greenboy::instructions {
-
-ByteLoad::ByteLoad(std::shared_ptr<ByteAccess> dest,
-                   std::shared_ptr<const ByteAccess> src)
+namespace greenboy {
+namespace instructions {
+ByteLoad::ByteLoad(std::shared_ptr<data_access::ByteAccess> dest,
+                   std::shared_ptr<const data_access::ByteAccess> src)
     : m_destination(std::move(dest)), m_source(std::move(src)) {
   if (m_source == nullptr) {
     throw std::invalid_argument("source may not be null");
@@ -19,6 +19,9 @@ cycles ByteLoad::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   m_destination->write(registers, memory, m_source->read(registers, memory));
   return cycles(4);
 }
+} // namespace instructions
+
+namespace data_access {
 byte ByteRegisterAccess::read(CPU::RegisterSet &registers,
                               MemoryBus & /* memory */) const {
   switch (m_reg) {
@@ -182,4 +185,5 @@ void IndirectAndDecrementByteAccess::write(CPU::RegisterSet &registers,
   m_inner.write(registers, memory, value);
   m_pointer->write(registers, memory, --m_pointer->read(registers, memory));
 }
-} // namespace greenboy::instructions
+} // namespace data_access
+} // namespace greenboy

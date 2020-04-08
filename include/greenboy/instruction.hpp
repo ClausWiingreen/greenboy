@@ -35,9 +35,7 @@ public:
                          MemoryBus & /* memory */) const = 0;
 };
 
-namespace instructions {
-
-// Access
+namespace data_access {
 
 class ByteAccess {
 public:
@@ -174,15 +172,17 @@ public:
              word value) override;
 };
 
-// Instructions
+} // namespace data_access
+
+namespace instructions {
 
 class ByteLoad : public Instruction {
-  std::shared_ptr<ByteAccess> m_destination;
-  std::shared_ptr<const ByteAccess> m_source;
+  std::shared_ptr<data_access::ByteAccess> m_destination;
+  std::shared_ptr<const data_access::ByteAccess> m_source;
 
 public:
-  ByteLoad(std::shared_ptr<ByteAccess> dest,
-           std::shared_ptr<const ByteAccess> src);
+  ByteLoad(std::shared_ptr<data_access::ByteAccess> dest,
+           std::shared_ptr<const data_access::ByteAccess> src);
 
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
