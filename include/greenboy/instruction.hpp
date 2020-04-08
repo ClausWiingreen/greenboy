@@ -91,14 +91,6 @@ public:
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              byte value) override;
-
-  static std::shared_ptr<ByteRegisterAccess> b();
-  static std::shared_ptr<ByteRegisterAccess> c();
-  static std::shared_ptr<ByteRegisterAccess> d();
-  static std::shared_ptr<ByteRegisterAccess> e();
-  static std::shared_ptr<ByteRegisterAccess> h();
-  static std::shared_ptr<ByteRegisterAccess> l();
-  static std::shared_ptr<ByteRegisterAccess> a();
 };
 
 class ImmediateByteAccess : public ByteAccess {
@@ -157,12 +149,6 @@ public:
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              word value) override;
-
-  static std::shared_ptr<WordRegisterAccess> bc();
-  static std::shared_ptr<WordRegisterAccess> de();
-  static std::shared_ptr<WordRegisterAccess> hl();
-  static std::shared_ptr<WordRegisterAccess> af();
-  static std::shared_ptr<WordRegisterAccess> sp();
 };
 
 class ImmediateWordAccess : public WordAccess {
@@ -201,16 +187,5 @@ public:
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
-class WordLoad : public Instruction {
-  std::shared_ptr<WordAccess> m_destination;
-  std::shared_ptr<const WordAccess> m_source;
-
-public:
-  WordLoad(std::shared_ptr<WordAccess> dest,
-           std::shared_ptr<const WordAccess> src)
-      : m_destination(std::move(dest)), m_source(std::move(src)) {}
-
-  cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-};
 } // namespace instructions
 } // namespace greenboy

@@ -68,69 +68,6 @@ void ByteRegisterAccess::write(CPU::RegisterSet &registers,
     throw std::runtime_error("Tried to write to an unknown 8 bit register");
   }
 }
-std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::b() {
-  static std::weak_ptr<ByteRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::B);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
-std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::c() {
-  static std::weak_ptr<ByteRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::C);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
-std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::d() {
-  static std::weak_ptr<ByteRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::D);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
-std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::e() {
-  static std::weak_ptr<ByteRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::E);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
-std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::h() {
-  static std::weak_ptr<ByteRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::H);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
-std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::l() {
-  static std::weak_ptr<ByteRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::L);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
-std::shared_ptr<ByteRegisterAccess> ByteRegisterAccess::a() {
-  static std::weak_ptr<ByteRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<ByteRegisterAccess>(CPU::R8::A);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
 byte ImmediateByteAccess::read(CPU::RegisterSet &registers,
                                MemoryBus &memory) const {
   return memory.read(registers.pc++);
@@ -195,51 +132,6 @@ void WordRegisterAccess::write(CPU::RegisterSet &registers,
     throw std::runtime_error("Tried to write to an unknown 16 bit register");
   }
 }
-std::shared_ptr<WordRegisterAccess> WordRegisterAccess::bc() {
-  static std::weak_ptr<WordRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R16::BC);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
-std::shared_ptr<WordRegisterAccess> WordRegisterAccess::de() {
-  static std::weak_ptr<WordRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R16::DE);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
-std::shared_ptr<WordRegisterAccess> WordRegisterAccess::hl() {
-  static std::weak_ptr<WordRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R16::HL);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
-std::shared_ptr<WordRegisterAccess> WordRegisterAccess::af() {
-  static std::weak_ptr<WordRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R16::AF);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
-std::shared_ptr<WordRegisterAccess> WordRegisterAccess::sp() {
-  static std::weak_ptr<WordRegisterAccess> instance;
-  if (instance.expired()) {
-    auto new_instance = std::make_shared<WordRegisterAccess>(CPU::R16::SP);
-    instance = new_instance;
-    return new_instance;
-  }
-  return instance.lock();
-}
 byte ConstantByteAccess::read(CPU::RegisterSet & /* registers */,
                               MemoryBus & /* memory */) const {
   return m_value;
@@ -257,10 +149,6 @@ word ImmediateWordAccess::read(CPU::RegisterSet &registers,
 void ImmediateWordAccess::write(CPU::RegisterSet & /* registers */,
                                 MemoryBus & /* memory */, word /* value */) {
   throw std::runtime_error("Tried to write to immediate word");
-}
-cycles WordLoad::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
-  m_destination->write(registers, memory, m_source->read(registers, memory));
-  return cycles();
 }
 
 word DoubleByteWordAccess::read(CPU::RegisterSet &registers,
