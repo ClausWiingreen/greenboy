@@ -36,6 +36,9 @@ public:
 };
 
 namespace instructions {
+
+// Access
+
 class ByteAccess {
 public:
   ByteAccess() = default;
@@ -195,7 +198,7 @@ public:
              word value) override;
 };
 
-//
+// Instructions
 
 class ByteLoad : public Instruction {
   std::shared_ptr<ByteAccess> m_destination;
