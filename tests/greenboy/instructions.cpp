@@ -560,6 +560,28 @@ TEST(WordLoad, PUSH_BC) {
   EXPECT_EQ(registers.c, byte{0xbc});
   EXPECT_EQ(registers.sp, word{0xfffc});
   EXPECT_EQ(time_passed, cycles{12});
-  // FAIL();
+}
+
+TEST(WordLoad, POP_BC) {
+  WordLoad instruction{
+      WordRegister::bc(),
+      DoubleByteWord::from(
+          IndirectByte::from(IncrementingWord::from(WordRegister::sp())),
+          IndirectByte::from(IncrementingWord::from(WordRegister::sp())))};
+
+  CPU::RegisterSet registers{};
+  registers.b = byte{0x0a};
+  registers.c = byte{0xbc};
+  registers.sp = word{0xfffc};
+  MockMemoryBus memory;
+  EXPECT_CALL(memory, read(word{0xfffd})).WillOnce(Return(byte{0x3c}));
+  EXPECT_CALL(memory, read(word{0xfffc})).WillOnce(Return(byte{0x5f}));
+
+  auto time_passed = instruction.execute(registers, memory);
+
+  EXPECT_EQ(registers.b, byte{0x3c});
+  EXPECT_EQ(registers.c, byte{0x5f});
+  EXPECT_EQ(registers.sp, word{0xfffe});
+  EXPECT_EQ(time_passed, cycles{8});
 }
 } // namespace
