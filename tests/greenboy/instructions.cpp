@@ -1,6 +1,7 @@
 #include "greenboy/instruction.hpp"
 #include "mocks/byte_access.hpp"
 #include "mocks/memory_bus.hpp"
+#include "mocks/word_access.hpp"
 #include "gtest/gtest.h"
 
 namespace {
@@ -482,4 +483,83 @@ TEST(ByteLoad, LD_HLD_A) {
   EXPECT_EQ(time_passed, cycles{4});
 }
 
+TEST(WordLoad, RejectsNullPointers) {
+  auto access = std::make_shared<MockWordAccess>();
+  EXPECT_THROW(WordLoad(nullptr, nullptr), std::invalid_argument);
+  EXPECT_THROW(WordLoad(access, nullptr), std::invalid_argument);
+  EXPECT_THROW(WordLoad(nullptr, access), std::invalid_argument);
+  EXPECT_NO_THROW(WordLoad(access, access));
+}
+
+TEST(WordLoad, TakesTheReadValueFromSourceAndWritesItToDestination) {
+  auto source = std::make_shared<MockWordAccess>();
+  auto destination = std::make_shared<MockWordAccess>();
+  CPU::RegisterSet registers{};
+  MockMemoryBus memory;
+
+  EXPECT_CALL(*source, read(_, _)).WillOnce(Return(word{0x2480}));
+  EXPECT_CALL(*destination, write(_, _, word{0x2480}));
+
+  WordLoad{destination, source}.execute(registers, memory);
+}
+
+TEST(WordLoad, LD_HL_0x3a5b) {
+  WordLoad instruction{WordRegister::hl(),
+                       DoubleByteWord::from(ImmediateByte::instance(),
+                                            ImmediateByte::instance())};
+  CPU::RegisterSet registers{};
+  registers.pc = word{0x6bea};
+
+  MockMemoryBus memory;
+  EXPECT_CALL(memory, read(word{0x6bea})).WillOnce(Return(byte{0x5b}));
+  EXPECT_CALL(memory, read(word{0x6beb})).WillOnce(Return(byte{0x3a}));
+
+  auto time_passed = instruction.execute(registers, memory);
+
+  EXPECT_EQ(registers.pc, word{0x6bec});
+  EXPECT_EQ(registers.h, byte{0x3a});
+  EXPECT_EQ(registers.l, byte{0x5b});
+  EXPECT_EQ(time_passed, cycles{8});
+}
+
+TEST(WordLoad, LD_SP_HL) {
+  WordLoad instruction{DelayedWordAccess::from(WordRegister::sp()),
+                       WordRegister::hl()};
+  CPU::RegisterSet registers{};
+  registers.h = byte{0x0a};
+  registers.l = byte{0xbc};
+  registers.sp = word{0x93f1};
+  MockMemoryBus memory;
+
+  auto time_passed = instruction.execute(registers, memory);
+
+  EXPECT_EQ(registers.h, byte{0x0a});
+  EXPECT_EQ(registers.l, byte{0xbc});
+  EXPECT_EQ(registers.sp, word{0x0abc});
+  EXPECT_EQ(time_passed, cycles{4});
+}
+
+TEST(WordLoad, PUSH_BC) {
+  WordLoad instruction{
+      DelayedWordAccess::from(DoubleByteWord::from(
+          IndirectByte::from(PreDecrementingWord::from(WordRegister::sp())),
+          IndirectByte::from(PreDecrementingWord::from(WordRegister::sp())))),
+      WordRegister::bc()};
+
+  CPU::RegisterSet registers{};
+  registers.b = byte{0x0a};
+  registers.c = byte{0xbc};
+  registers.sp = word{0xfffe};
+  MockMemoryBus memory;
+  EXPECT_CALL(memory, write(word{0xfffd}, byte{0x0a}));
+  EXPECT_CALL(memory, write(word{0xfffc}, byte{0xbc}));
+
+  auto time_passed = instruction.execute(registers, memory);
+
+  EXPECT_EQ(registers.b, byte{0x0a});
+  EXPECT_EQ(registers.c, byte{0xbc});
+  EXPECT_EQ(registers.sp, word{0xfffc});
+  EXPECT_EQ(time_passed, cycles{12});
+  // FAIL();
+}
 } // namespace

@@ -159,6 +159,21 @@ public:
   from(std::shared_ptr<WordAccess> inner);
 };
 
+class PreDecrementingWord : public WordAccess {
+  std::shared_ptr<WordAccess> m_inner;
+
+public:
+  explicit PreDecrementingWord(std::shared_ptr<WordAccess> inner)
+      : m_inner(std::move(inner)) {}
+
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+  void write(CPU::RegisterSet &registers, MemoryBus &memory,
+             word value) override;
+
+  static std::shared_ptr<PreDecrementingWord>
+  from(std::shared_ptr<WordAccess> inner);
+};
+
 class WordRegister : public WordAccess {
   CPU::R16 m_reg;
 
@@ -172,6 +187,7 @@ public:
   static std::shared_ptr<WordRegister> bc();
   static std::shared_ptr<WordRegister> de();
   static std::shared_ptr<WordRegister> hl();
+  static std::shared_ptr<WordRegister> sp();
 };
 
 class DoubleByteWord : public WordAccess {
@@ -192,6 +208,30 @@ public:
 
   static std::shared_ptr<DoubleByteWord> from(std::shared_ptr<ByteAccess> high,
                                               std::shared_ptr<ByteAccess> low);
+};
+
+class DelayedWordAccess : public WordAccess {
+  std::shared_ptr<WordAccess> m_inner;
+
+public:
+  DelayedWordAccess(std::shared_ptr<WordAccess> inner)
+      : m_inner(std::move(inner)) {}
+
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override {
+    return m_inner->read(registers, memory);
+  }
+  void write(CPU::RegisterSet &registers, MemoryBus &memory,
+             word value) override {
+    m_inner->write(registers, memory, value);
+  }
+  cycles access_time() const override {
+    return cycles{4} + m_inner->access_time();
+  }
+
+  static std::shared_ptr<DelayedWordAccess>
+  from(std::shared_ptr<WordAccess> inner) {
+    return std::make_shared<DelayedWordAccess>(inner);
+  }
 };
 
 } // namespace data_access

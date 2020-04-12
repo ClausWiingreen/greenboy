@@ -31,8 +31,9 @@ WordLoad::WordLoad(std::shared_ptr<data_access::WordAccess> dest,
 }
 cycles WordLoad::execute(CPU::RegisterSet &registers, MemoryBus &memory) const {
   m_destination->write(registers, memory, m_source->read(registers, memory));
-  return cycles(4);
+  return m_destination->access_time() + m_source->access_time();
 }
+
 } // namespace instructions
 
 namespace data_access {
@@ -187,6 +188,10 @@ std::shared_ptr<WordRegister> WordRegister::hl() {
   static auto instance = std::make_shared<WordRegister>(CPU::R16::HL);
   return instance;
 }
+std::shared_ptr<WordRegister> WordRegister::sp() {
+  static auto instance = std::make_shared<WordRegister>(CPU::R16::SP);
+  return instance;
+}
 byte ConstantByte::read(CPU::RegisterSet & /* registers */,
                         MemoryBus & /* memory */) const {
   return m_value;
@@ -208,6 +213,7 @@ word DoubleByteWord::read(CPU::RegisterSet &registers,
 }
 void DoubleByteWord::write(CPU::RegisterSet &registers, MemoryBus &memory,
                            word value) {
+  // Order is important for push instruction
   m_high->write(registers, memory, value.high());
   m_low->write(registers, memory, value.low());
 }
@@ -247,6 +253,21 @@ IncrementingWord::from(std::shared_ptr<WordAccess> inner) {
 std::shared_ptr<DecrementingWord>
 DecrementingWord::from(std::shared_ptr<WordAccess> inner) {
   return std::make_shared<DecrementingWord>(std::move(inner));
+}
+word PreDecrementingWord::read(CPU::RegisterSet &registers,
+                               MemoryBus &memory) const {
+  auto value = m_inner->read(registers, memory);
+  --value;
+  m_inner->write(registers, memory, value);
+  return value;
+}
+void PreDecrementingWord::write(CPU::RegisterSet & /* registers */,
+                                MemoryBus & /* memory */, word /* value */) {
+  throw std::runtime_error("Tried to write to an predecrementing word");
+}
+std::shared_ptr<PreDecrementingWord>
+PreDecrementingWord::from(std::shared_ptr<WordAccess> inner) {
+  return std::make_shared<PreDecrementingWord>(std::move(inner));
 }
 } // namespace data_access
 } // namespace greenboy
