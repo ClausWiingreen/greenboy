@@ -214,7 +214,7 @@ class DelayedWordAccess : public WordAccess {
   std::shared_ptr<WordAccess> m_inner;
 
 public:
-  DelayedWordAccess(std::shared_ptr<WordAccess> inner)
+  explicit DelayedWordAccess(std::shared_ptr<WordAccess> inner)
       : m_inner(std::move(inner)) {}
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override {
@@ -234,10 +234,30 @@ public:
   }
 };
 
+class OffsatWord : public WordAccess {
+  std::shared_ptr<WordAccess> m_access;
+  std::shared_ptr<ByteAccess> m_offset;
+
+public:
+  OffsatWord(std::shared_ptr<WordAccess> access,
+             std::shared_ptr<ByteAccess> offset)
+      : m_access(std::move(access)), m_offset(std::move(offset)) {}
+
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+  void write(CPU::RegisterSet &registers, MemoryBus &memory,
+             word value) override;
+  cycles access_time() const override {
+    return m_offset->access_time() + m_access->access_time();
+  }
+
+  static std::shared_ptr<OffsatWord> from(std::shared_ptr<WordAccess> access,
+                                          std::shared_ptr<ByteAccess> offset) {
+    return std::make_shared<OffsatWord>(access, offset);
+  }
+};
 } // namespace data_access
 
 namespace instructions {
-
 class ByteLoad : public Instruction {
   std::shared_ptr<data_access::ByteAccess> m_destination;
   std::shared_ptr<const data_access::ByteAccess> m_source;

@@ -584,4 +584,34 @@ TEST(WordLoad, POP_BC) {
   EXPECT_EQ(registers.sp, word{0xfffe});
   EXPECT_EQ(time_passed, cycles{8});
 }
+
+TEST(WordLoad, LDHL_SP_2) {
+  WordLoad instruction{
+      WordRegister::hl(),
+      OffsatWord::from(DelayedWordAccess::from(WordRegister::sp()),
+                       ImmediateByte::instance())};
+
+  CPU::RegisterSet registers{};
+  registers.h = byte{0x0a};
+  registers.l = byte{0xbc};
+  registers.f = CPU::Flags{byte{0x80}};
+  registers.sp = word{0xfff8};
+  registers.pc = word{0x2000};
+  MockMemoryBus memory;
+  EXPECT_CALL(memory, read(word{0x2000})).WillOnce(Return(byte{0x02}));
+
+  auto time_passed = instruction.execute(registers, memory);
+
+  EXPECT_EQ(registers.h, byte{0xff});
+  EXPECT_EQ(registers.l, byte{0xfa});
+  EXPECT_FALSE(registers.f.zero);
+  EXPECT_FALSE(registers.f.negate);
+  EXPECT_FALSE(registers.f.half_carry);
+  EXPECT_FALSE(registers.f.carry);
+  EXPECT_EQ(registers.sp, word{0xfff8});
+  EXPECT_EQ(registers.pc, word{0x2001});
+  EXPECT_EQ(time_passed, cycles{8});
+  /*
+   */
+}
 } // namespace
