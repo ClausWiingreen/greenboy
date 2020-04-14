@@ -48,10 +48,11 @@ public:
   ByteAccess &operator=(const ByteAccess &) = delete;
   ByteAccess &operator=(ByteAccess &&) = delete;
 
-  virtual byte read(CPU::RegisterSet &registers, MemoryBus &memory) const = 0;
+  [[nodiscard]] virtual byte read(CPU::RegisterSet &registers,
+                                  MemoryBus &memory) const = 0;
   virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
                      byte value) = 0;
-  virtual cycles access_time() const { return cycles{}; }
+  [[nodiscard]] virtual cycles access_time() const { return cycles{}; }
 };
 
 class WordAccess {
@@ -65,17 +66,18 @@ public:
   WordAccess &operator=(const WordAccess &) = delete;
   WordAccess &operator=(WordAccess &&) = delete;
 
-  virtual word read(CPU::RegisterSet &registers, MemoryBus &memory) const = 0;
+  [[nodiscard]] virtual word read(CPU::RegisterSet &registers,
+                                  MemoryBus &memory) const = 0;
   virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
                      word value) = 0;
-  virtual cycles access_time() const { return cycles{}; }
+  [[nodiscard]] virtual cycles access_time() const;
 };
 
 class ConstantByte : public ByteAccess {
   byte m_value;
 
 public:
-  explicit ConstantByte(byte value) : m_value(value) {}
+  explicit ConstantByte(byte value);
 
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
@@ -88,7 +90,7 @@ class ByteRegister : public ByteAccess {
   CPU::R8 m_reg;
 
 public:
-  explicit ByteRegister(CPU::R8 reg) : m_reg(reg) {}
+  explicit ByteRegister(CPU::R8 reg);
 
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
@@ -106,7 +108,7 @@ public:
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              byte value) override;
-  cycles access_time() const override { return cycles{4}; }
+  cycles access_time() const override;
 
   static std::shared_ptr<ImmediateByte> instance();
 };
@@ -115,15 +117,12 @@ class IndirectByte : public ByteAccess {
   std::shared_ptr<WordAccess> m_pointer;
 
 public:
-  explicit IndirectByte(std::shared_ptr<WordAccess> pointer)
-      : m_pointer(std::move(pointer)) {}
+  explicit IndirectByte(std::shared_ptr<WordAccess> pointer);
 
   byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              byte value) override;
-  cycles access_time() const override {
-    return cycles{4} + m_pointer->access_time();
-  }
+  cycles access_time() const override;
 
   static std::shared_ptr<IndirectByte>
   from(std::shared_ptr<WordAccess> pointer);
@@ -133,8 +132,7 @@ class IncrementingWord : public WordAccess {
   std::shared_ptr<WordAccess> m_inner;
 
 public:
-  explicit IncrementingWord(std::shared_ptr<WordAccess> inner)
-      : m_inner(std::move(inner)) {}
+  explicit IncrementingWord(std::shared_ptr<WordAccess> inner);
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
@@ -148,8 +146,7 @@ class DecrementingWord : public WordAccess {
   std::shared_ptr<WordAccess> m_inner;
 
 public:
-  explicit DecrementingWord(std::shared_ptr<WordAccess> inner)
-      : m_inner(std::move(inner)) {}
+  explicit DecrementingWord(std::shared_ptr<WordAccess> inner);
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
@@ -163,8 +160,7 @@ class PreDecrementingWord : public WordAccess {
   std::shared_ptr<WordAccess> m_inner;
 
 public:
-  explicit PreDecrementingWord(std::shared_ptr<WordAccess> inner)
-      : m_inner(std::move(inner)) {}
+  explicit PreDecrementingWord(std::shared_ptr<WordAccess> inner);
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
@@ -178,7 +174,7 @@ class WordRegister : public WordAccess {
   CPU::R16 m_reg;
 
 public:
-  explicit WordRegister(CPU::R16 reg) : m_reg(reg) {}
+  explicit WordRegister(CPU::R16 reg);
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
@@ -196,15 +192,12 @@ class DoubleByteWord : public WordAccess {
 
 public:
   DoubleByteWord(std::shared_ptr<ByteAccess> high,
-                 std::shared_ptr<ByteAccess> low)
-      : m_high(std::move(high)), m_low(std::move(low)) {}
+                 std::shared_ptr<ByteAccess> low);
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              word value) override;
-  cycles access_time() const override {
-    return m_high->access_time() + m_low->access_time();
-  }
+  cycles access_time() const override;
 
   static std::shared_ptr<DoubleByteWord> from(std::shared_ptr<ByteAccess> high,
                                               std::shared_ptr<ByteAccess> low);
@@ -214,24 +207,15 @@ class DelayedWordAccess : public WordAccess {
   std::shared_ptr<WordAccess> m_inner;
 
 public:
-  explicit DelayedWordAccess(std::shared_ptr<WordAccess> inner)
-      : m_inner(std::move(inner)) {}
+  explicit DelayedWordAccess(std::shared_ptr<WordAccess> inner);
 
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override {
-    return m_inner->read(registers, memory);
-  }
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override {
-    m_inner->write(registers, memory, value);
-  }
-  cycles access_time() const override {
-    return cycles{4} + m_inner->access_time();
-  }
+             word value) override;
+  cycles access_time() const override;
 
   static std::shared_ptr<DelayedWordAccess>
-  from(std::shared_ptr<WordAccess> inner) {
-    return std::make_shared<DelayedWordAccess>(inner);
-  }
+  from(std::shared_ptr<WordAccess> inner);
 };
 
 class OffsatWord : public WordAccess {
@@ -240,42 +224,31 @@ class OffsatWord : public WordAccess {
 
 public:
   OffsatWord(std::shared_ptr<WordAccess> access,
-             std::shared_ptr<ByteAccess> offset)
-      : m_access(std::move(access)), m_offset(std::move(offset)) {}
+             std::shared_ptr<ByteAccess> offset);
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              word value) override;
-  cycles access_time() const override {
-    return m_offset->access_time() + m_access->access_time();
-  }
+  cycles access_time() const override;
 
   static std::shared_ptr<OffsatWord> from(std::shared_ptr<WordAccess> access,
-                                          std::shared_ptr<ByteAccess> offset) {
-    return std::make_shared<OffsatWord>(access, offset);
-  }
+                                          std::shared_ptr<ByteAccess> offset);
 };
 
 class IndirectWord : public WordAccess {
   std::shared_ptr<WordAccess> m_pointer;
 
 public:
-  explicit IndirectWord(std::shared_ptr<WordAccess> pointer)
-      : m_pointer(std::move(pointer)) {}
+  explicit IndirectWord(std::shared_ptr<WordAccess> pointer);
 
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              word value) override;
-  cycles access_time() const override {
-    return cycles{8} + m_pointer->access_time();
-  }
+  cycles access_time() const override;
 
   static std::shared_ptr<IndirectWord>
-  from(std::shared_ptr<WordAccess> pointer) {
-    return std::make_shared<IndirectWord>(std::move(pointer));
-  }
+  from(std::shared_ptr<WordAccess> pointer);
 };
-
 } // namespace data_access
 
 namespace instructions {
