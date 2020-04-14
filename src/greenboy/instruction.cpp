@@ -1,5 +1,8 @@
 #include "greenboy/instruction.hpp"
 
+#include <iomanip>
+#include <iostream>
+
 namespace greenboy {
 byte Add(byte a, byte b, CPU::Flags &f) {
 
@@ -303,6 +306,18 @@ word OffsatWord::read(CPU::RegisterSet &registers, MemoryBus &memory) const {
 void OffsatWord::write(CPU::RegisterSet & /* registers */,
                        MemoryBus & /* memory */, word /* value */) {
   throw std::runtime_error("Tried to write to an offsat word");
+}
+word IndirectWord::read(CPU::RegisterSet &registers, MemoryBus &memory) const {
+  auto pointer = m_pointer->read(registers, memory);
+  auto low = memory.read(pointer);
+  auto high = memory.read(++pointer);
+  return word{high, low};
+}
+void IndirectWord::write(CPU::RegisterSet &registers, MemoryBus &memory,
+                         word value) {
+  auto pointer = m_pointer->read(registers, memory);
+  memory.write(pointer, value.low());
+  memory.write(++pointer, value.high());
 }
 } // namespace data_access
 } // namespace greenboy

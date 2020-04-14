@@ -611,7 +611,26 @@ TEST(WordLoad, LDHL_SP_2) {
   EXPECT_EQ(registers.sp, word{0xfff8});
   EXPECT_EQ(registers.pc, word{0x2001});
   EXPECT_EQ(time_passed, cycles{8});
-  /*
-   */
+}
+
+TEST(WordLoad, LD_0xc100_SP) {
+  WordLoad instruction{
+      IndirectWord::from(DoubleByteWord::from(ImmediateByte::instance(),
+                                              ImmediateByte::instance())),
+      WordRegister::sp()};
+
+  CPU::RegisterSet registers{};
+  registers.sp = word{0xfff8};
+  MockMemoryBus memory;
+  EXPECT_CALL(memory, read(word{0x0000})).WillOnce(Return(byte{0x00}));
+  EXPECT_CALL(memory, read(word{0x0001})).WillOnce(Return(byte{0xc1}));
+  EXPECT_CALL(memory, write(word{0xc100}, byte{0xf8}));
+  EXPECT_CALL(memory, write(word{0xc101}, byte{0xff}));
+
+  auto time_passed = instruction.execute(registers, memory);
+
+  EXPECT_EQ(time_passed, cycles{16});
+  EXPECT_EQ(registers.sp, word{0xfff8});
+  EXPECT_EQ(registers.pc, word{0x0002});
 }
 } // namespace

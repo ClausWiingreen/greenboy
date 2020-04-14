@@ -255,6 +255,27 @@ public:
     return std::make_shared<OffsatWord>(access, offset);
   }
 };
+
+class IndirectWord : public WordAccess {
+  std::shared_ptr<WordAccess> m_pointer;
+
+public:
+  explicit IndirectWord(std::shared_ptr<WordAccess> pointer)
+      : m_pointer(std::move(pointer)) {}
+
+  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
+  void write(CPU::RegisterSet &registers, MemoryBus &memory,
+             word value) override;
+  cycles access_time() const override {
+    return cycles{8} + m_pointer->access_time();
+  }
+
+  static std::shared_ptr<IndirectWord>
+  from(std::shared_ptr<WordAccess> pointer) {
+    return std::make_shared<IndirectWord>(std::move(pointer));
+  }
+};
+
 } // namespace data_access
 
 namespace instructions {
