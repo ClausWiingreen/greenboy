@@ -8,14 +8,14 @@ byte Add(byte a, byte b, CPU::Flags &f) {
 
   auto a_val = a.value();
   auto b_val = b.value();
-  auto result = a_val + b_val;
+  auto result = static_cast<unsigned>(a_val + b_val);
   auto carry = result ^ a_val ^ b_val;
   result &= 0xff;
 
   f.zero = result == 0;
   f.negate = false;
-  f.half_carry = (carry & 1 << 4) != 0;
-  f.carry = (carry & 1 << 8) != 0;
+  f.half_carry = (carry & 1u << 4u) != 0;
+  f.carry = (carry & 1u << 8u) != 0;
 
   return byte{static_cast<uint8_t>(result)};
 }
@@ -320,8 +320,8 @@ OffsatWord::OffsatWord(std::shared_ptr<WordAccess> access,
 word OffsatWord::read(CPU::RegisterSet &registers, MemoryBus &memory) const {
   auto value = m_access->read(registers, memory);
   auto offset_low = m_offset->read(registers, memory);
-  auto offset_high = byte{
-      static_cast<uint8_t>((offset_low.value() & (1 << 7)) != 0 ? 0xff : 0x00)};
+  auto offset_high = byte{static_cast<uint8_t>(
+      (offset_low.value() & (1u << 7u)) != 0 ? 0xff : 0x00)};
 
   auto low = Add(value.low(), offset_low, registers.f);
   auto high = AddWithCarry(value.high(), offset_high, registers.f);
