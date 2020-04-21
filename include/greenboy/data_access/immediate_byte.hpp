@@ -21,4 +21,4 @@ public:
    */
   static std::shared_ptr<ImmediateByte> instance();
 };
-}; // namespace greenboy::data_access
+} // namespace greenboy::data_access
