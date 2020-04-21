@@ -8,11 +8,8 @@
 #include "types.hpp"
 
 namespace greenboy {
-template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template <class... Ts> overloaded(Ts...)->overloaded<Ts...>;
-
 /**
- * a well defined interface for CPU emulation.
+ * CPU interface for Gameboy emulation.
  */
 class CPU {
 public:
@@ -32,49 +29,140 @@ public:
    */
   virtual cycles update() = 0;
 
+  /**
+   * @brief This enum is the ways that the registers can be accesses on the CPU
+   * as 8 bit values.
+   */
   enum class R8 { B, C, D, E, H, L, A };
+  /**
+   * @brief This enum is the ways that the registers can be accesses on the CPU
+   * as 16 bit values.
+   */
   enum class R16 { BC, DE, HL, SP, PC, AF };
 
+  /**
+   * @brief the flags used internally by the cpu
+   *
+   */
   struct Flags {
-    bool zero;
-    bool negate;
-    bool half_carry;
-    bool carry;
 
-    Flags() = default;
-    explicit Flags(byte value) {
-      zero = (value.value() & 0x80u) != 0;
-      negate = (value.value() & 0x40u) != 0;
-      half_carry = (value.value() & 0x20u) != 0;
-      carry = (value.value() & 0x10u) != 0;
+    /**
+     * @brief the zero flag. Indicates whether the result of the last operation
+     * resulted in zero.
+     */
+    bool zero = false;
+    /**
+     * @brief the negate flag. Indicates whether the last operation was a
+     * negation operation.
+     */
+    bool negate = false;
+    /**
+     * @brief the half carry flag. Indicates whether the last operation caused
+     * overflow between the 3rd and 4th bit to occur.
+     */
+    bool half_carry = false;
+    /**
+     * @brief the carry flag. Indicates whether the last operation caused an
+     * overflow.
+     */
+    bool carry = false;
+    /**
+     * @brief Default constructor.
+     * Constructs false initialize set of Flags.
+     *
+     */
+    constexpr Flags() noexcept = default;
+
+    /**
+     * @brief Constructs the flags from the byte representation in <c>value</c>.
+     * Only the 4 most significant bits are used.
+     *
+     * @param value the byte representation of the flags
+     */
+    explicit constexpr Flags(byte value) noexcept {
+      zero = (value.value() & (1u << 7u)) != 0;
+      negate = (value.value() & (1u << 6u)) != 0;
+      half_carry = (value.value() & (1u << 5u)) != 0;
+      carry = (value.value() & (1u << 4u)) != 0;
     }
-    Flags(const Flags &) = default;
-    Flags(Flags &&) = default;
+    /**
+     * @brief Copy constructor. Constructs the Flags with the copy of the
+     * contents of <c>other</c>.
+     *
+     * @param other another Flags to use as a source to initialize the Flags
+     * with
+     */
+    Flags(const Flags &other) noexcept = default;
+    /**
+     * @brief Move constructor. Constructs the Flags with the contents of
+     * <c>other</c> using move semantics.
+     * <c>other</c> is left in a valid, but unspecified state.
+     *
+     * @param other another Flags to use as a source to initialize the Flags
+     * with
+     */
+    Flags(Flags &&other) noexcept = default;
+    /**
+     * @brief destroys the Flags
+     *
+     */
+    ~Flags() noexcept = default;
 
-    ~Flags() = default;
+    /**
+     * @brief Replaces the contents with a copy of <c>f</c>.
+     * If <c>f</c> and <c>*this</c> is the same, this function has no effect.
+     *
+     * @param f Flags to be used to initialize the Flags with
+     * @return <c>*thiz</c>
+     */
+    Flags &operator=(const Flags &f) noexcept = default;
 
-    Flags &operator=(const Flags &) = default;
-    Flags &operator=(Flags &&) = default;
+    /**
+     * @brief Replaces the contents with those of <c>f</c> using move semantics.
+     * <c>f</c> is in a valid but unspecified state afterwards.
+     *
+     * @param f Flags to be used to initialize the Flags with
+     * @return <c>*thiz</c>
+     */
+    Flags &operator=(Flags &&f) noexcept = default;
 
-    explicit operator byte() const {
+    /**
+     * @brief Cast to byte operator
+     *
+     * @return A byte representation of the flags
+     */
+    [[nodiscard]] constexpr explicit operator byte() const noexcept {
       return byte{static_cast<uint8_t>(
           (zero ? 0x80u : 0u) | (negate ? 0x40u : 0u) |
           (half_carry ? 0x20u : 0u) | (carry ? 0x10u : 0u))};
     }
 
-    constexpr bool operator==(const Flags &other) const {
+    /**
+     * @brief Checks if the flags are the same
+     *
+     * @param other Flags which content to compare with.
+     * @return <c>true</c> when none of the flags differ; otherwise <c>false</c>
+     */
+    [[nodiscard]] constexpr bool operator==(const Flags &other) const noexcept {
       return zero == other.zero && negate == other.negate &&
              half_carry == other.half_carry && carry == other.carry;
     }
 
-    constexpr bool operator!=(const Flags &other) const {
+    /**
+     * @brief Checks if the flags are different
+     *
+     * @param other Flags which content to compare with.
+     * @return <c>true</c> when at least one of the flags differ; otherwise
+     * <c>false</c>
+     */
+    [[nodiscard]] constexpr bool operator!=(const Flags &other) const noexcept {
       return zero != other.zero || negate != other.negate ||
              half_carry != other.half_carry || carry != other.carry;
     }
   };
 
   /**
-   * @brief holds the register values for the CPU
+   * @brief The class RegisterSet holds the register values for the CPU
    */
   struct RegisterSet {
     /**

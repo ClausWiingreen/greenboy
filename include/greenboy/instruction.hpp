@@ -7,17 +7,33 @@
 #include "memory_bus.hpp"
 #include "timing.hpp"
 
+#include "data_access/byte_access.hpp"
+#include "data_access/word_access.hpp"
+
 namespace greenboy {
 /**
- * @brief an interface for instructions which are performed by the CPU
+ * @brief This class acts as an interface for instructions which performed by
+ * the CPU
  *
  */
 class Instruction {
-public:
+protected:
+  /**
+   * @brief Construct a new Instruction object
+   *
+   */
   Instruction() = default;
+
+public:
   Instruction(const Instruction &) = delete;
   Instruction(Instruction &&) = delete;
 
+  /**
+   * @brief Destroy the Instruction object
+   *
+   * Virtual to allow destruction of child objects
+   *
+   */
   virtual ~Instruction() = default;
 
   Instruction &operator=(const Instruction &) = delete;
@@ -35,243 +51,47 @@ public:
                          MemoryBus &memory) const = 0;
 };
 
-namespace data_access {
-
-class ByteAccess {
-public:
-  ByteAccess() = default;
-  ByteAccess(const ByteAccess &) = delete;
-  ByteAccess(ByteAccess &&) = delete;
-
-  virtual ~ByteAccess() = default;
-
-  ByteAccess &operator=(const ByteAccess &) = delete;
-  ByteAccess &operator=(ByteAccess &&) = delete;
-
-  [[nodiscard]] virtual byte read(CPU::RegisterSet &registers,
-                                  MemoryBus &memory) const = 0;
-  virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
-                     byte value) = 0;
-  [[nodiscard]] virtual cycles access_time() const { return cycles{}; }
-};
-
-class WordAccess {
-public:
-  WordAccess() = default;
-  WordAccess(const WordAccess &) = delete;
-  WordAccess(WordAccess &&) = delete;
-
-  virtual ~WordAccess() = default;
-
-  WordAccess &operator=(const WordAccess &) = delete;
-  WordAccess &operator=(WordAccess &&) = delete;
-
-  [[nodiscard]] virtual word read(CPU::RegisterSet &registers,
-                                  MemoryBus &memory) const = 0;
-  virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
-                     word value) = 0;
-  [[nodiscard]] virtual cycles access_time() const;
-};
-
-class ConstantByte : public ByteAccess {
-  byte m_value;
-
-public:
-  explicit ConstantByte(byte value);
-
-  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             byte value) override;
-
-  static std::shared_ptr<ConstantByte> from(byte value);
-};
-
-class ByteRegister : public ByteAccess {
-  CPU::R8 m_reg;
-
-public:
-  explicit ByteRegister(CPU::R8 reg);
-
-  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             byte value) override;
-
-  static std::shared_ptr<ByteRegister> b();
-  static std::shared_ptr<ByteRegister> c();
-  static std::shared_ptr<ByteRegister> d();
-  static std::shared_ptr<ByteRegister> h();
-  static std::shared_ptr<ByteRegister> a();
-};
-
-class ImmediateByte : public ByteAccess {
-public:
-  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             byte value) override;
-  cycles access_time() const override;
-
-  static std::shared_ptr<ImmediateByte> instance();
-};
-
-class IndirectByte : public ByteAccess {
-  std::shared_ptr<WordAccess> m_pointer;
-
-public:
-  explicit IndirectByte(std::shared_ptr<WordAccess> pointer);
-
-  byte read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             byte value) override;
-  cycles access_time() const override;
-
-  static std::shared_ptr<IndirectByte>
-  from(std::shared_ptr<WordAccess> pointer);
-};
-
-class IncrementingWord : public WordAccess {
-  std::shared_ptr<WordAccess> m_inner;
-
-public:
-  explicit IncrementingWord(std::shared_ptr<WordAccess> inner);
-
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-
-  static std::shared_ptr<IncrementingWord>
-  from(std::shared_ptr<WordAccess> inner);
-};
-
-class DecrementingWord : public WordAccess {
-  std::shared_ptr<WordAccess> m_inner;
-
-public:
-  explicit DecrementingWord(std::shared_ptr<WordAccess> inner);
-
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-
-  static std::shared_ptr<DecrementingWord>
-  from(std::shared_ptr<WordAccess> inner);
-};
-
-class PreDecrementingWord : public WordAccess {
-  std::shared_ptr<WordAccess> m_inner;
-
-public:
-  explicit PreDecrementingWord(std::shared_ptr<WordAccess> inner);
-
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-
-  static std::shared_ptr<PreDecrementingWord>
-  from(std::shared_ptr<WordAccess> inner);
-};
-
-class WordRegister : public WordAccess {
-  CPU::R16 m_reg;
-
-public:
-  explicit WordRegister(CPU::R16 reg);
-
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-
-  static std::shared_ptr<WordRegister> bc();
-  static std::shared_ptr<WordRegister> de();
-  static std::shared_ptr<WordRegister> hl();
-  static std::shared_ptr<WordRegister> sp();
-};
-
-class DoubleByteWord : public WordAccess {
-  std::shared_ptr<ByteAccess> m_high;
-  std::shared_ptr<ByteAccess> m_low;
-
-public:
-  DoubleByteWord(std::shared_ptr<ByteAccess> high,
-                 std::shared_ptr<ByteAccess> low);
-
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-  cycles access_time() const override;
-
-  static std::shared_ptr<DoubleByteWord> from(std::shared_ptr<ByteAccess> high,
-                                              std::shared_ptr<ByteAccess> low);
-};
-
-class DelayedWordAccess : public WordAccess {
-  std::shared_ptr<WordAccess> m_inner;
-
-public:
-  explicit DelayedWordAccess(std::shared_ptr<WordAccess> inner);
-
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-  cycles access_time() const override;
-
-  static std::shared_ptr<DelayedWordAccess>
-  from(std::shared_ptr<WordAccess> inner);
-};
-
-class OffsatWord : public WordAccess {
-  std::shared_ptr<WordAccess> m_access;
-  std::shared_ptr<ByteAccess> m_offset;
-
-public:
-  OffsatWord(std::shared_ptr<WordAccess> access,
-             std::shared_ptr<ByteAccess> offset);
-
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-  cycles access_time() const override;
-
-  static std::shared_ptr<OffsatWord> from(std::shared_ptr<WordAccess> access,
-                                          std::shared_ptr<ByteAccess> offset);
-};
-
-class IndirectWord : public WordAccess {
-  std::shared_ptr<WordAccess> m_pointer;
-
-public:
-  explicit IndirectWord(std::shared_ptr<WordAccess> pointer);
-
-  word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
-  void write(CPU::RegisterSet &registers, MemoryBus &memory,
-             word value) override;
-  cycles access_time() const override;
-
-  static std::shared_ptr<IndirectWord>
-  from(std::shared_ptr<WordAccess> pointer);
-};
-} // namespace data_access
 
 namespace instructions {
+/**
+ * @brief
+ *
+ */
 class ByteLoad : public Instruction {
   std::shared_ptr<data_access::ByteAccess> m_destination;
   std::shared_ptr<const data_access::ByteAccess> m_source;
 
 public:
+  /**
+   * @brief Construct a new Byte Load object
+   *
+   * @param dest
+   * @param src
+   */
   ByteLoad(std::shared_ptr<data_access::ByteAccess> dest,
            std::shared_ptr<const data_access::ByteAccess> src);
 
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
 
+/**
+ * @brief
+ *
+ */
 class WordLoad : public Instruction {
   std::shared_ptr<data_access::WordAccess> m_destination;
   std::shared_ptr<const data_access::WordAccess> m_source;
 
 public:
+  /**
+   * @brief Construct a new Word Load object
+   *
+   * @param dest
+   * @param src
+   */
   WordLoad(std::shared_ptr<data_access::WordAccess> dest,
            std::shared_ptr<const data_access::WordAccess> src);
   cycles execute(CPU::RegisterSet &registers, MemoryBus &memory) const override;
 };
-
 } // namespace instructions
 } // namespace greenboy

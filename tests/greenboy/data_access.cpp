@@ -4,6 +4,21 @@
 #include "mocks/word_access.hpp"
 #include "gtest/gtest.h"
 
+#include "greenboy/data_access/byte_access.hpp"
+#include "greenboy/data_access/byte_register.hpp"
+#include "greenboy/data_access/constant_byte.hpp"
+#include "greenboy/data_access/decrementing_word.hpp"
+#include "greenboy/data_access/double_byte_word.hpp"
+#include "greenboy/data_access/delayed_word_access.hpp"
+#include "greenboy/data_access/immediate_byte.hpp"
+#include "greenboy/data_access/incrementing_word.hpp"
+#include "greenboy/data_access/indirect_byte.hpp"
+#include "greenboy/data_access/indirect_word.hpp"
+#include "greenboy/data_access/offsat_word.hpp"
+#include "greenboy/data_access/pre_decrementing_word.hpp"
+#include "greenboy/data_access/word_access.hpp"
+#include "greenboy/data_access/word_register.hpp"
+
 namespace {
 using namespace greenboy;
 using namespace data_access;
