@@ -2,6 +2,8 @@
 
 #include "word_access.hpp"
 
+#include <memory>
+
 namespace greenboy::data_access {
 /**
  * @brief
