@@ -430,4 +430,52 @@ TEST(PreDecrementingWord, WritesAreRejected) {
 
   EXPECT_THROW(access.write(registers, memory, word{0x00}), std::runtime_error);
 }
+
+TEST(DelayedWordAccess, RejectsNullPointers) {
+  auto inner = std::make_shared<MockWordAccess>();
+
+  EXPECT_THROW(DelayedWordAccess(nullptr), std::runtime_error);
+  EXPECT_NO_THROW(DelayedWordAccess(std::move(inner)));
+}
+
+TEST(DelayedWordAccess, Read) {
+  auto inner = std::make_shared<MockWordAccess>();
+  EXPECT_CALL(*inner, read(_, _)).WillOnce(Return(word{0x5076}));
+
+  DelayedWordAccess access(std::move(inner));
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  auto result = access.read(registers, memory);
+
+  EXPECT_EQ(result, word{0x5076});
+  EXPECT_EQ(registers, CPU::RegisterSet{});
+}
+
+TEST(DelayedWordAccess, Write) {
+  auto inner = std::make_shared<MockWordAccess>();
+  EXPECT_CALL(*inner, write(_, _, word{0x5900}));
+
+  DelayedWordAccess access(std::move(inner));
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  access.write(registers, memory, word{0x5900});
+
+  EXPECT_EQ(registers, CPU::RegisterSet{});
+}
+
+TEST(DelayedWordAccess, AccessTime) {
+  auto inner = std::make_shared<MockWordAccess>();
+  EXPECT_CALL(*inner, access_time()).WillOnce(Return(cycles{4});
+
+  DelayedWordAccess access(std::move(inner));
+
+  auto result = access.access_time();
+
+  EXPECT_EQ(result, cycles{8});
+}
+
 } // namespace

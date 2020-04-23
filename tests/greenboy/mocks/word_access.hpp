@@ -12,4 +12,5 @@ public:
               (greenboy::CPU::RegisterSet &, greenboy::MemoryBus &,
                greenboy::word),
               (override));
+  MOCK_METHOD(cycles, access_time, (), (const, override));
 };
