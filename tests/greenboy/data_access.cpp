@@ -105,15 +105,21 @@ TEST(ImmediateByte, RejectsWrites) {
   EXPECT_THROW(access.write(registers, memory, byte{0x34}), std::runtime_error);
 }
 
-TEST(IndirectByte, ReadsAreDelegatedToMemoryLocationsDictatedByThePointer) {
+TEST(IndirectByte, RejectNullPointers) {
   auto pointer = std::make_shared<MockWordAccess>();
-  IndirectByte access{std::static_pointer_cast<WordAccess>(pointer)};
 
-  MockMemoryBus memory;
+  EXPECT_THROW(IndirectByte(nullptr), std::runtime_error);
+  EXPECT_NO_THROW(IndirectByte(std::move(pointer)));
+}
+
+TEST(IndirectByte, ReadsAreDelegatedToMemoryLocationsDictatedByThePointer) {
   CPU::RegisterSet registers{};
-
+  auto pointer = std::make_shared<MockWordAccess>();
   EXPECT_CALL(*pointer, read(_, _)).WillOnce(Return(word{0x1234}));
+  MockMemoryBus memory;
   EXPECT_CALL(memory, read(word{0x1234})).WillOnce(Return(byte{0xde}));
+
+  IndirectByte access{std::move(pointer)};
 
   EXPECT_EQ(access.read(registers, memory), byte{0xde});
 }
@@ -272,4 +278,156 @@ TEST(IndirectWord, WritesAreDelegatedToMemoryLocationsDictatedByThePointer) {
   access.write(registers, memory, word{0xedde});
 }
 
+TEST(OffsatWord, RejectNullValues) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  auto offset = std::make_shared<MockByteAccess>();
+
+  EXPECT_THROW(OffsatWord(nullptr, nullptr), std::runtime_error);
+  EXPECT_THROW(
+      OffsatWord(std::static_pointer_cast<WordAccess>(pointer), nullptr),
+      std::runtime_error);
+  EXPECT_THROW(
+      OffsatWord(nullptr, std::static_pointer_cast<ByteAccess>(offset)),
+      std::runtime_error);
+  EXPECT_NO_THROW(OffsatWord(std::static_pointer_cast<WordAccess>(pointer),
+                             std::static_pointer_cast<ByteAccess>(offset)));
+}
+
+TEST(OffsatWord, StandardRead) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  auto offset = std::make_shared<MockByteAccess>();
+
+  EXPECT_CALL(*pointer, read(_, _)).WillOnce(Return(word{0x5376}));
+  EXPECT_CALL(*offset, read(_, _)).WillOnce(Return(byte{0x76}));
+
+  OffsatWord access(std::static_pointer_cast<WordAccess>(pointer),
+                    std::static_pointer_cast<ByteAccess>(offset));
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  auto result = access.read(registers, memory);
+  EXPECT_EQ(result, word{0x53ec});
+  EXPECT_EQ(registers, CPU::RegisterSet{});
+}
+
+TEST(OffsatWord, OverflowRead) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  auto offset = std::make_shared<MockByteAccess>();
+
+  EXPECT_CALL(*pointer, read(_, _)).WillOnce(Return(word{0xfffe}));
+  EXPECT_CALL(*offset, read(_, _)).WillOnce(Return(byte{0x02}));
+
+  OffsatWord access(std::static_pointer_cast<WordAccess>(pointer),
+                    std::static_pointer_cast<ByteAccess>(offset));
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  auto result = access.read(registers, memory);
+  EXPECT_EQ(result, word{0x0000});
+  EXPECT_TRUE(registers.f.zero);
+  EXPECT_FALSE(registers.f.negate);
+  EXPECT_TRUE(registers.f.half_carry);
+  EXPECT_TRUE(registers.f.carry);
+}
+
+TEST(OffsatWord, NegativeOffsetRead) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  auto offset = std::make_shared<MockByteAccess>();
+
+  EXPECT_CALL(*pointer, read(_, _)).WillOnce(Return(word{0x3f7e}));
+  EXPECT_CALL(*offset, read(_, _)).WillOnce(Return(byte{0xf2}));
+
+  OffsatWord access(std::static_pointer_cast<WordAccess>(pointer),
+                    std::static_pointer_cast<ByteAccess>(offset));
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  auto result = access.read(registers, memory);
+  EXPECT_EQ(result, word{0x3f70});
+  EXPECT_EQ(registers, CPU::RegisterSet{});
+}
+
+TEST(OffsatWord, NegativeOffsetReadUnderflow) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  auto offset = std::make_shared<MockByteAccess>();
+
+  EXPECT_CALL(*pointer, read(_, _)).WillOnce(Return(word{0x0003}));
+  EXPECT_CALL(*offset, read(_, _)).WillOnce(Return(byte{0xfb}));
+
+  OffsatWord access(std::static_pointer_cast<WordAccess>(pointer),
+                    std::static_pointer_cast<ByteAccess>(offset));
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  auto result = access.read(registers, memory);
+  EXPECT_EQ(result, word{0xfffe});
+  EXPECT_EQ(registers, CPU::RegisterSet{});
+}
+
+TEST(OffsatWord, WritesAreRejected) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  auto offset = std::make_shared<MockByteAccess>();
+
+  OffsatWord access(std::static_pointer_cast<WordAccess>(pointer),
+                    std::static_pointer_cast<ByteAccess>(offset));
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_THROW(access.write(registers, memory, word{0x00}), std::runtime_error);
+}
+
+TEST(PreDecrementingWord, RejectsNullPointers) {
+  auto inner = std::make_shared<MockWordAccess>();
+
+  EXPECT_THROW(PreDecrementingWord(nullptr), std::runtime_error);
+  EXPECT_NO_THROW(PreDecrementingWord(std::move(inner)));
+}
+
+TEST(PreDecrementingWord, Read) {
+  auto inner = std::make_shared<MockWordAccess>();
+  EXPECT_CALL(*inner, read(_, _)).WillOnce(Return(word{0x5076}));
+  EXPECT_CALL(*inner, write(_, _, word{0x5075}));
+
+  PreDecrementingWord access(std::move(inner));
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  auto result = access.read(registers, memory);
+
+  EXPECT_EQ(result, word{0x5075});
+  EXPECT_EQ(registers, CPU::RegisterSet{});
+}
+
+TEST(PreDecrementingWord, ReadUnderflow) {
+  auto inner = std::make_shared<MockWordAccess>();
+  EXPECT_CALL(*inner, read(_, _)).WillOnce(Return(word{0x0000}));
+  EXPECT_CALL(*inner, write(_, _, word{0xffff}));
+
+  PreDecrementingWord access(std::move(inner));
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  auto result = access.read(registers, memory);
+
+  EXPECT_EQ(result, word{0xffff});
+  EXPECT_EQ(registers, CPU::RegisterSet{});
+}
+
+TEST(PreDecrementingWord, WritesAreRejected) {
+  auto inner = std::make_shared<MockWordAccess>();
+
+  PreDecrementingWord access(std::move(inner));
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_THROW(access.write(registers, memory, word{0x00}), std::runtime_error);
+}
 } // namespace

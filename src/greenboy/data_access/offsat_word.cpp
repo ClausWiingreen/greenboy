@@ -27,7 +27,16 @@ greenboy::byte AddWithCarry(greenboy::byte a, greenboy::byte b,
 namespace greenboy::data_access {
 OffsatWord::OffsatWord(std::shared_ptr<WordAccess> access,
                        std::shared_ptr<ByteAccess> offset)
-    : m_access(std::move(access)), m_offset(std::move(offset)) {}
+    : m_access(std::move(access)), m_offset(std::move(offset)) {
+  if (m_offset == nullptr) {
+    throw std::runtime_error(
+        "Cannot create Offsat word with offset sat to null");
+  }
+  if (m_access == nullptr) {
+    throw std::runtime_error(
+        "Cannot create Offsat word with access sat to null");
+  }
+}
 word OffsatWord::read(CPU::RegisterSet &registers, MemoryBus &memory) const {
   auto value = m_access->read(registers, memory);
   auto offset_low = m_offset->read(registers, memory);

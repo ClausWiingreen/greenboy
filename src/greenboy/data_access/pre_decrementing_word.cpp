@@ -2,7 +2,11 @@
 
 namespace greenboy::data_access {
 PreDecrementingWord::PreDecrementingWord(std::shared_ptr<WordAccess> inner)
-    : m_inner(std::move(inner)) {}
+    : m_inner(std::move(inner)) {
+  if (m_inner == nullptr) {
+    throw std::runtime_error("Parameter inner may not be null");
+  }
+}
 word PreDecrementingWord::read(CPU::RegisterSet &registers,
                                MemoryBus &memory) const {
   auto value = m_inner->read(registers, memory);

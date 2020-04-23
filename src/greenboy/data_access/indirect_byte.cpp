@@ -2,7 +2,11 @@
 
 namespace greenboy::data_access {
 IndirectByte::IndirectByte(std::shared_ptr<WordAccess> pointer)
-    : m_pointer(std::move(pointer)) {}
+    : m_pointer(std::move(pointer)) {
+  if (m_pointer == nullptr) {
+    throw std::runtime_error("Parameter pointer may not be null");
+  }
+}
 byte IndirectByte::read(CPU::RegisterSet &registers, MemoryBus &memory) const {
   return memory.read(m_pointer->read(registers, memory));
 }
