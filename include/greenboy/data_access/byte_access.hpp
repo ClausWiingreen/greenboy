@@ -46,6 +46,6 @@ public:
    *
    * @return cycles
    */
-  [[nodiscard]] virtual cycles access_time() const { return cycles{}; }
+  [[nodiscard]] virtual cycles access_time() const;
 };
 } // namespace greenboy::data_access

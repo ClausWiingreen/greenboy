@@ -8,8 +8,8 @@
 #include "greenboy/data_access/byte_register.hpp"
 #include "greenboy/data_access/constant_byte.hpp"
 #include "greenboy/data_access/decrementing_word.hpp"
-#include "greenboy/data_access/double_byte_word.hpp"
 #include "greenboy/data_access/delayed_word_access.hpp"
+#include "greenboy/data_access/double_byte_word.hpp"
 #include "greenboy/data_access/immediate_byte.hpp"
 #include "greenboy/data_access/incrementing_word.hpp"
 #include "greenboy/data_access/indirect_byte.hpp"
@@ -243,4 +243,33 @@ TEST(DoubleByteWord, DelegateWritesToByteAccesses) {
 
   access.write(registers, memory, word{0x0531});
 }
+
+TEST(IndirectWord, ReadsAreDelegatedToMemoryLocationsDictatedByThePointer) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectWord access{std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillOnce(Return(word{0x3762}));
+  EXPECT_CALL(memory, read(word{0x3762})).WillOnce(Return(byte{0xaa}));
+  EXPECT_CALL(memory, read(word{0x3763})).WillOnce(Return(byte{0xbb}));
+
+  EXPECT_EQ(access.read(registers, memory), word{0xbbaa});
+}
+
+TEST(IndirectWord, WritesAreDelegatedToMemoryLocationsDictatedByThePointer) {
+  auto pointer = std::make_shared<MockWordAccess>();
+  IndirectWord access{std::static_pointer_cast<WordAccess>(pointer)};
+
+  MockMemoryBus memory;
+  CPU::RegisterSet registers{};
+
+  EXPECT_CALL(*pointer, read(_, _)).WillOnce(Return(word{0x1234}));
+  EXPECT_CALL(memory, write(word{0x1234}, byte{0xde}));
+  EXPECT_CALL(memory, write(word{0x1235}, byte{0xed}));
+
+  access.write(registers, memory, word{0xedde});
+}
+
 } // namespace
