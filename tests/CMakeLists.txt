@@ -16,10 +16,11 @@ endmacro()
 greenboy_add_test(DataAccess      greenboy/data_access.cpp)
 greenboy_add_test(FetchExecuteCPU greenboy/fetch_execute_cpu.cpp)
 greenboy_add_test(Gameboy         greenboy/gameboy.cpp)
+greenboy_add_test(Instructions    greenboy/instructions.cpp)
 
 # do not include intergration tests in coverage
 if(NOT ${GREENBOY_COVERAGE})
-  greenboy_add_test(Instructions greenboy/instructions.cpp)
+  greenboy_add_test(IndividualInstructions greenboy/individual_instructions.cpp)
 endif()
 
 if(GREENBOY_COVERAGE)
