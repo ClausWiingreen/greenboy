@@ -469,7 +469,7 @@ TEST(DelayedWordAccess, Write) {
 
 TEST(DelayedWordAccess, AccessTime) {
   auto inner = std::make_shared<MockWordAccess>();
-  EXPECT_CALL(*inner, access_time()).WillOnce(Return(cycles{4});
+  EXPECT_CALL(*inner, access_time()).WillOnce(Return(cycles{4}));
 
   DelayedWordAccess access(std::move(inner));
 
