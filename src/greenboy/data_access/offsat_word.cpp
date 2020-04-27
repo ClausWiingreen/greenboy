@@ -3,8 +3,8 @@
 greenboy::byte Add(greenboy::byte a, greenboy::byte b,
                    greenboy::CPU::Flags &f) {
 
-  auto a_val = std::to_integer<int>(a);
-  auto b_val = std::to_integer<int>(b);
+  auto a_val = std::to_integer<unsigned>(a);
+  auto b_val = std::to_integer<unsigned>(b);
   auto result = static_cast<unsigned>(a_val + b_val);
   auto carry = result ^ a_val ^ b_val;
   result &= 0xff;
