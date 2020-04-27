@@ -1,11 +1,11 @@
 #include "greenboy/data_access/delayed_word_access.hpp"
 
+#include <cassert>
+
 namespace greenboy::data_access {
 DelayedWordAccess::DelayedWordAccess(std::shared_ptr<WordAccess> inner)
     : m_inner(std::move(inner)) {
-  if (m_inner == nullptr) {
-    throw std::runtime_error("The inner word access field may not be null");
-  }
+  assert(m_inner != nullptr);
 }
 word DelayedWordAccess::read(CPU::RegisterSet &registers,
                              MemoryBus &memory) const {

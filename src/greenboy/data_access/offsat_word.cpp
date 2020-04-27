@@ -3,8 +3,8 @@
 greenboy::byte Add(greenboy::byte a, greenboy::byte b,
                    greenboy::CPU::Flags &f) {
 
-  auto a_val = a.value();
-  auto b_val = b.value();
+  auto a_val = std::to_integer<int>(a);
+  auto b_val = std::to_integer<int>(b);
   auto result = static_cast<unsigned>(a_val + b_val);
   auto carry = result ^ a_val ^ b_val;
   result &= 0xff;
@@ -19,9 +19,10 @@ greenboy::byte Add(greenboy::byte a, greenboy::byte b,
 
 greenboy::byte AddWithCarry(greenboy::byte a, greenboy::byte b,
                             greenboy::CPU::Flags &f) {
-  return Add(
-      a, greenboy::byte{static_cast<uint8_t>(b.value() + (f.carry ? 1 : 0))},
-      f);
+  return Add(a,
+             greenboy::byte{static_cast<uint8_t>(std::to_integer<int>(b) +
+                                                 (f.carry ? 1 : 0))},
+             f);
 }
 
 namespace greenboy::data_access {
@@ -41,12 +42,12 @@ word OffsatWord::read(CPU::RegisterSet &registers, MemoryBus &memory) const {
   auto value = m_access->read(registers, memory);
   auto offset_low = m_offset->read(registers, memory);
   auto offset_high = byte{static_cast<uint8_t>(
-      (offset_low.value() & (1u << 7u)) != 0 ? 0xff : 0x00)};
+      (offset_low & byte(1u << 7u)) != byte{} ? 0xff : 0x00)};
 
-  auto low = Add(value.low(), offset_low, registers.f);
-  auto high = AddWithCarry(value.high(), offset_high, registers.f);
+  auto low = Add(low_byte(value), offset_low, registers.f);
+  auto high = AddWithCarry(high_byte(value), offset_high, registers.f);
 
-  return word{high, low};
+  return to_word(high, low);
 }
 void OffsatWord::write(CPU::RegisterSet & /* registers */,
                        MemoryBus & /* memory */, word /* value */) {

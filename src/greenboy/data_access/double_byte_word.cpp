@@ -10,13 +10,13 @@ word DoubleByteWord::read(CPU::RegisterSet &registers,
   // Order is important if the source are both immediate values
   auto low = m_low->read(registers, memory);
   auto high = m_high->read(registers, memory);
-  return word(high, low);
+  return to_word(high, low);
 }
 void DoubleByteWord::write(CPU::RegisterSet &registers, MemoryBus &memory,
                            word value) {
   // Order is important for push instruction
-  m_high->write(registers, memory, value.high());
-  m_low->write(registers, memory, value.low());
+  m_high->write(registers, memory, high_byte(value));
+  m_low->write(registers, memory, low_byte(value));
 }
 cycles DoubleByteWord::access_time() const {
   return m_high->access_time() + m_low->access_time();

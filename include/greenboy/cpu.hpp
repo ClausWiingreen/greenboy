@@ -80,10 +80,10 @@ public:
      * @param value the byte representation of the flags
      */
     explicit constexpr Flags(byte value) noexcept {
-      zero = (value.value() & (1u << 7u)) != 0;
-      negate = (value.value() & (1u << 6u)) != 0;
-      half_carry = (value.value() & (1u << 5u)) != 0;
-      carry = (value.value() & (1u << 4u)) != 0;
+      zero = (value & byte(1u << 7u)) != byte{};
+      negate = (value & byte(1u << 6u)) != byte{};
+      half_carry = (value & byte(1u << 5u)) != byte{};
+      carry = (value & byte(1u << 4u)) != byte{};
     }
     /**
      * @brief Copy constructor. Constructs the Flags with the copy of the

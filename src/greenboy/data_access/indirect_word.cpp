@@ -6,13 +6,13 @@ word IndirectWord::read(CPU::RegisterSet &registers, MemoryBus &memory) const {
   auto pointer = m_pointer->read(registers, memory);
   auto low = memory.read(pointer);
   auto high = memory.read(++pointer);
-  return word{high, low};
+  return to_word(high, low);
 }
 void IndirectWord::write(CPU::RegisterSet &registers, MemoryBus &memory,
                          word value) {
   auto pointer = m_pointer->read(registers, memory);
-  memory.write(pointer, value.low());
-  memory.write(++pointer, value.high());
+  memory.write(pointer, low_byte(value));
+  memory.write(++pointer, high_byte(value));
 }
 cycles IndirectWord::access_time() const {
   return cycles{8} + m_pointer->access_time();

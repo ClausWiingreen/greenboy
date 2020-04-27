@@ -433,8 +433,7 @@ TEST(PreDecrementingWord, WritesAreRejected) {
 
 TEST(DelayedWordAccess, RejectsNullPointers) {
   auto inner = std::make_shared<MockWordAccess>();
-
-  EXPECT_THROW(DelayedWordAccess(nullptr), std::runtime_error);
+  EXPECT_DEATH(DelayedWordAccess(nullptr), "");
   EXPECT_NO_THROW(DelayedWordAccess(std::move(inner)));
 }
 
