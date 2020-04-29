@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 
 project(Greenboy)
 
@@ -67,6 +67,8 @@ list(APPEND GREENBOY_SOURCES
   ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/pre_decrementing_word.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/word_access.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/word_register.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/instructions/word_load.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/instructions/byte_load.cpp
 )
 
 option(ENABLE_CPPCHECK "Enable the CppCheck static analyser" OFF)
@@ -93,6 +95,9 @@ if(ENABLE_CLANGTIDY)
   endif()
 endif()
 
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
+
 add_library(Greenboy
   ${GREENBOY_SOURCES}
   ${GREENBOY_HEADERS}
@@ -109,6 +114,15 @@ target_link_libraries(Greenboy
   PUBLIC
     greenboy_options
 )
+
+set_target_properties(Greenboy 
+  PROPERTIES 
+    SOVERSION 0 
+    VERSION 0.2
+ )
+
+ include(GenerateExportHeader)
+ generate_export_header(Greenboy)
 
 if(GREENBOY_DOCS)
   find_package(Doxygen

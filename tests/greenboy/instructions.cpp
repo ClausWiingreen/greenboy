@@ -4,6 +4,9 @@
 #include "mocks/word_access.hpp"
 #include "gtest/gtest.h"
 
+#include "greenboy/instructions/byte_load.hpp"
+#include "greenboy/instructions/word_load.hpp"
+
 namespace {
 using namespace greenboy;
 using namespace instructions;
