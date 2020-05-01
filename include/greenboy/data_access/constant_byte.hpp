@@ -1,15 +1,11 @@
 #pragma once
 
-#include "./byte_access.hpp"
+#include "byte_access.hpp"
 
 #include <memory>
 
 namespace greenboy::data_access {
-/**
- * @brief
- *
- */
-class ConstantByte : public ByteAccess {
+class ConstantByte final : public ByteAccess {
   byte m_value;
 
 public:

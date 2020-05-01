@@ -1,5 +1,7 @@
 #include "greenboy/data_access/double_byte_word.hpp"
 
+#include "greenboy/data_access/byte_access.hpp"
+
 namespace greenboy::data_access {
 DoubleByteWord::DoubleByteWord(std::shared_ptr<ByteAccess> high,
                                std::shared_ptr<ByteAccess> low)

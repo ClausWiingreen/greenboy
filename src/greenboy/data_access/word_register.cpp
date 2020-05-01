@@ -1,5 +1,7 @@
 #include "greenboy/data_access/word_register.hpp"
 
+#include <stdexcept>
+
 namespace greenboy::data_access {
 WordRegister::WordRegister(CPU::R16 reg) : m_reg(reg) {}
 word WordRegister::read(CPU::RegisterSet &registers,

@@ -1,5 +1,7 @@
 #include "greenboy/data_access/constant_byte.hpp"
 
+#include <stdexcept>
+
 namespace greenboy::data_access {
 ConstantByte::ConstantByte(byte value) : m_value(value) {}
 byte ConstantByte::read(CPU::RegisterSet & /* registers */,

@@ -65,7 +65,7 @@ TEST(ByteRegister, ReadsFromInvalidRegistersThrow) {
   MockMemoryBus memory;
   CPU::RegisterSet registers{};
 
-  EXPECT_THROW(access.read(registers, memory), std::runtime_error);
+  EXPECT_THROW(auto val = access.read(registers, memory), std::runtime_error);
 }
 
 TEST(ByteRegister, WritesToInvalidRegistersThrow) {

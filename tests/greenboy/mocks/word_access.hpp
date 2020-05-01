@@ -1,6 +1,6 @@
 #pragma once
 
-#include "greenboy/instruction.hpp"
+#include "greenboy/data_access/word_access.hpp"
 #include "gmock/gmock.h"
 
 class MockWordAccess : public greenboy::data_access::WordAccess {

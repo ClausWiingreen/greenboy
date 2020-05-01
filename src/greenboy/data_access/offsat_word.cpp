@@ -1,5 +1,9 @@
 #include "greenboy/data_access/offsat_word.hpp"
 
+#include <stdexcept>
+
+#include "greenboy/data_access/byte_access.hpp"
+
 greenboy::byte Add(greenboy::byte a, greenboy::byte b,
                    greenboy::CPU::Flags &f) {
 

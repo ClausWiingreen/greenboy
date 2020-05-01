@@ -1,5 +1,7 @@
 #include "greenboy/data_access/pre_decrementing_word.hpp"
 
+#include <stdexcept>
+
 namespace greenboy::data_access {
 PreDecrementingWord::PreDecrementingWord(std::shared_ptr<WordAccess> inner)
     : m_inner(std::move(inner)) {

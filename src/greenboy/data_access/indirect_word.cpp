@@ -1,4 +1,7 @@
 #include "greenboy/data_access/indirect_word.hpp"
+
+#include "greenboy/memory_bus.hpp"
+
 namespace greenboy::data_access {
 IndirectWord::IndirectWord(std::shared_ptr<WordAccess> pointer)
     : m_pointer(std::move(pointer)) {}

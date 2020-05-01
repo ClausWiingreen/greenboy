@@ -1,5 +1,7 @@
 #include "greenboy/data_access/incrementing_word.hpp"
 
+#include <stdexcept>
+
 namespace greenboy::data_access {
 IncrementingWord::IncrementingWord(std::shared_ptr<WordAccess> inner)
     : m_inner(std::move(inner)) {}

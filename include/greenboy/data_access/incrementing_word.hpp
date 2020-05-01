@@ -4,13 +4,8 @@
 
 #include <memory>
 
-
 namespace greenboy::data_access {
-/**
- * @brief
- *
- */
-class IncrementingWord : public WordAccess {
+class IncrementingWord final : public WordAccess {
   std::shared_ptr<WordAccess> m_inner;
 
 public:
@@ -19,13 +14,6 @@ public:
   word read(CPU::RegisterSet &registers, MemoryBus &memory) const override;
   void write(CPU::RegisterSet &registers, MemoryBus &memory,
              word value) override;
-
-  /**
-   * @brief
-   *
-   * @param inner
-   * @return
-   */
   static std::shared_ptr<IncrementingWord>
   from(std::shared_ptr<WordAccess> inner);
 };

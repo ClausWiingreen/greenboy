@@ -11,18 +11,7 @@ using ::testing::_;
 using ::testing::Return;
 using ::testing::ReturnRef;
 
-TEST(FetchExecuteCPUCtor, RejectsNullControlUnit) {
-  ASSERT_THROW(FetchExecuteCPU(std::make_unique<MockMemoryBus>(), nullptr),
-               std::invalid_argument);
-}
-
-TEST(FetchExecuteCPUCtor, RejectsNullMemoryBus) {
-  ASSERT_THROW(
-      FetchExecuteCPU(nullptr, std::make_unique<MockOpcodeTranslator>()),
-      std::invalid_argument);
-}
-
-TEST(FetchExecuteCPUCtor, CallsToUpdateDelegatesToComponents) {
+TEST(FetchExecuteCPUC, CallsToUpdateDelegatesToComponents) {
   auto memory = std::make_unique<MockMemoryBus>();
   auto translator = std::make_unique<MockOpcodeTranslator>();
   MockInstruction instruction;

@@ -1,5 +1,7 @@
 #include "greenboy/data_access/decrementing_word.hpp"
 
+#include <stdexcept>
+
 namespace greenboy::data_access {
 void DecrementingWord::write(CPU::RegisterSet & /* registers */,
                              MemoryBus & /* memory */, word /* value */) {
