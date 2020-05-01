@@ -1,6 +1,6 @@
 #pragma once
 
-#include "greenboy/instruction.hpp"
+#include "greenboy/data_access/byte_access.hpp"
 #include "gmock/gmock.h"
 
 class MockByteAccess : public greenboy::data_access::ByteAccess {
@@ -12,4 +12,5 @@ public:
               (greenboy::CPU::RegisterSet &, greenboy::MemoryBus &,
                greenboy::byte),
               (override));
+  MOCK_METHOD(greenboy::cycles, access_time, (), (const, noexcept, override));
 };

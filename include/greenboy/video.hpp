@@ -3,13 +3,9 @@
 #include "timing.hpp"
 
 namespace greenboy {
-/**
- * a well defined interface for Video emulation.
- */
 class Video {
 public:
-  //! @cond Doxygen_Suppress
-  Video() = default;
+  Video() noexcept = default;
   Video(const Video &) = delete;
   Video(Video &&) = delete;
 
@@ -17,13 +13,7 @@ public:
 
   Video &operator=(const Video &) = delete;
   Video &operator=(Video &&) = delete;
-  //! @endcond
 
-  /**
-   * Advances the state of the emulation by the number of cycles.
-   *
-   * @param c the number of cycles to advance by
-   */
   virtual void advance(cycles c) = 0;
 };
 } // namespace greenboy

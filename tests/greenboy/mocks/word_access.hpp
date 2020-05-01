@@ -1,6 +1,6 @@
 #pragma once
 
-#include "greenboy/instruction.hpp"
+#include "greenboy/data_access/word_access.hpp"
 #include "gmock/gmock.h"
 
 class MockWordAccess : public greenboy::data_access::WordAccess {
@@ -12,4 +12,5 @@ public:
               (greenboy::CPU::RegisterSet &, greenboy::MemoryBus &,
                greenboy::word),
               (override));
+  MOCK_METHOD(greenboy::cycles, access_time, (), (const, override));
 };

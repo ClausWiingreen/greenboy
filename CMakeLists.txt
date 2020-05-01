@@ -27,6 +27,20 @@ list(APPEND GREENBOY_HEADERS
   ${CMAKE_SOURCE_DIR}/include/greenboy/timing.hpp
   ${CMAKE_SOURCE_DIR}/include/greenboy/types.hpp
   ${CMAKE_SOURCE_DIR}/include/greenboy/video.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/byte_access.hpp 
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/byte_register.hpp 
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/constant_byte.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/decrementing_word.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/delayed_word_access.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/double_byte_word.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/immediate_byte.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/incrementing_word.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/indirect_byte.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/indirect_word.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/offsat_word.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/pre_decrementing_word.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/word_access.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/word_register.hpp
 )
 
 list(APPEND GREENBOY_SOURCES 
@@ -39,6 +53,22 @@ list(APPEND GREENBOY_SOURCES
   ${CMAKE_SOURCE_DIR}/src/greenboy/timing.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/types.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/video.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/byte_access.cpp 
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/byte_register.cpp 
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/constant_byte.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/decrementing_word.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/delayed_word_access.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/double_byte_word.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/immediate_byte.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/incrementing_word.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/indirect_byte.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/indirect_word.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/offsat_word.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/pre_decrementing_word.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/word_access.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/word_register.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/instructions/word_load.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/instructions/byte_load.cpp
 )
 
 option(ENABLE_CPPCHECK "Enable the CppCheck static analyser" OFF)
@@ -65,6 +95,9 @@ if(ENABLE_CLANGTIDY)
   endif()
 endif()
 
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
+
 add_library(Greenboy
   ${GREENBOY_SOURCES}
   ${GREENBOY_HEADERS}
@@ -81,6 +114,15 @@ target_link_libraries(Greenboy
   PUBLIC
     greenboy_options
 )
+
+set_target_properties(Greenboy 
+  PROPERTIES 
+    SOVERSION 0 
+    VERSION 0.2
+ )
+
+ include(GenerateExportHeader)
+ generate_export_header(Greenboy)
 
 if(GREENBOY_DOCS)
   find_package(Doxygen
