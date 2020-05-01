@@ -52,20 +52,4 @@ void WordRegister::write(CPU::RegisterSet &registers, MemoryBus & /* memory */,
     throw std::runtime_error("Tried to write to an unknown 16 bit register");
   }
 }
-std::shared_ptr<WordRegister> WordRegister::bc() {
-  static auto instance = std::make_shared<WordRegister>(CPU::R16::BC);
-  return instance;
-}
-std::shared_ptr<WordRegister> WordRegister::de() {
-  static auto instance = std::make_shared<WordRegister>(CPU::R16::DE);
-  return instance;
-}
-std::shared_ptr<WordRegister> WordRegister::hl() {
-  static auto instance = std::make_shared<WordRegister>(CPU::R16::HL);
-  return instance;
-}
-std::shared_ptr<WordRegister> WordRegister::sp() {
-  static auto instance = std::make_shared<WordRegister>(CPU::R16::SP);
-  return instance;
-}
 } // namespace greenboy::data_access

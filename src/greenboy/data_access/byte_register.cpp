@@ -53,24 +53,4 @@ void ByteRegister::write(CPU::RegisterSet &registers, MemoryBus & /* memory */,
     throw std::runtime_error("Tried to write to an unknown 8 bit register");
   }
 }
-std::shared_ptr<ByteRegister> ByteRegister::b() noexcept {
-  static auto instance = std::make_shared<ByteRegister>(CPU::R8::B);
-  return instance;
-}
-std::shared_ptr<ByteRegister> ByteRegister::c() noexcept {
-  static auto instance = std::make_shared<ByteRegister>(CPU::R8::C);
-  return instance;
-}
-std::shared_ptr<ByteRegister> ByteRegister::d() noexcept {
-  static auto instance = std::make_shared<ByteRegister>(CPU::R8::D);
-  return instance;
-}
-std::shared_ptr<ByteRegister> ByteRegister::h() noexcept {
-  static auto instance = std::make_shared<ByteRegister>(CPU::R8::H);
-  return instance;
-}
-std::shared_ptr<ByteRegister> ByteRegister::a() noexcept {
-  static auto instance = std::make_shared<ByteRegister>(CPU::R8::A);
-  return instance;
-}
 } // namespace greenboy::data_access

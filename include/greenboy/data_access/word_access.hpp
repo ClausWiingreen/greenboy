@@ -21,7 +21,7 @@ public:
                                   MemoryBus &memory) const = 0;
   virtual void write(CPU::RegisterSet &registers, MemoryBus &memory,
                      word value) = 0;
-  [[nodiscard]] virtual cycles access_time() const;
+  [[nodiscard]] virtual cycles access_time() const { return cycles{}; }
 };
 } // namespace data_access
 } // namespace greenboy
