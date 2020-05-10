@@ -12,6 +12,7 @@ include(StandardProjectSettings)
 
 add_library(greenboy_options INTERFACE)
 target_compile_features(greenboy_options INTERFACE cxx_std_17)
+target_compile_options(greenboy_options INTERFACE $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fno-operator-names>)
 
 add_library(greenboy_warnings INTERFACE)
 include(CompilerWarnings)
@@ -41,7 +42,10 @@ list(APPEND GREENBOY_HEADERS
   ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/pre_decrementing_word.hpp
   ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/word_access.hpp
   ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/word_register.hpp
-)
+  ${CMAKE_SOURCE_DIR}/include/greenboy/instructions/byte_arithmetic_operation.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/instructions/byte_load.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/instructions/word_load.hpp
+ )
 
 list(APPEND GREENBOY_SOURCES 
   ${CMAKE_SOURCE_DIR}/src/greenboy/cpu.cpp
@@ -67,8 +71,9 @@ list(APPEND GREENBOY_SOURCES
   ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/pre_decrementing_word.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/word_access.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/word_register.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/instructions/word_load.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/instructions/byte_arithmetic_operation.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/instructions/byte_load.cpp
+  ${CMAKE_SOURCE_DIR}/src/greenboy/instructions/word_load.cpp
 )
 
 option(ENABLE_CPPCHECK "Enable the CppCheck static analyser" OFF)

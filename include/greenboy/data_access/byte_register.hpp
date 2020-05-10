@@ -19,6 +19,7 @@ public:
   [[nodiscard]] static std::shared_ptr<ByteRegister> b() noexcept;
   [[nodiscard]] static std::shared_ptr<ByteRegister> c() noexcept;
   [[nodiscard]] static std::shared_ptr<ByteRegister> d() noexcept;
+  [[nodiscard]] static std::shared_ptr<ByteRegister> e() noexcept;
   [[nodiscard]] static std::shared_ptr<ByteRegister> h() noexcept;
   [[nodiscard]] static std::shared_ptr<ByteRegister> l() noexcept;
   [[nodiscard]] static std::shared_ptr<ByteRegister> a() noexcept;
@@ -34,6 +35,10 @@ inline std::shared_ptr<ByteRegister> ByteRegister::c() noexcept {
 }
 inline std::shared_ptr<ByteRegister> ByteRegister::d() noexcept {
   static auto instance = std::make_shared<ByteRegister>(CPU::R8::D);
+  return instance;
+}
+inline std::shared_ptr<ByteRegister> ByteRegister::e() noexcept {
+  static auto instance = std::make_shared<ByteRegister>(CPU::R8::E);
   return instance;
 }
 inline std::shared_ptr<ByteRegister> ByteRegister::h() noexcept {
