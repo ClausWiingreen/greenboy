@@ -4,8 +4,8 @@
 
 #include "greenboy/data_access/byte_access.hpp"
 
-greenboy::byte Add(greenboy::byte a, greenboy::byte b,
-                   greenboy::CPU::Flags &f) {
+static greenboy::byte Add(greenboy::byte a, greenboy::byte b,
+                          greenboy::CPU::Flags &f) {
 
   auto a_val = std::to_integer<unsigned>(a);
   auto b_val = std::to_integer<unsigned>(b);
