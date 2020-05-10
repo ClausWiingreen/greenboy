@@ -35,6 +35,8 @@ byte bitwise_and(const byte lhs, const byte rhs, CPU::Flags &f) noexcept;
 byte bitwise_or(const byte lhs, const byte rhs, CPU::Flags &f) noexcept;
 byte bitwise_xor(const byte lhs, const byte rhs, CPU::Flags &f) noexcept;
 byte compare(const byte lhs, const byte rhs, CPU::Flags &f) noexcept;
+byte increment(const byte lhs, const byte rhs, CPU::Flags &f) noexcept;
+byte decrement(const byte lhs, const byte rhs, CPU::Flags &f) noexcept;
 } // namespace operations
 } // namespace instructions
 } // namespace greenboy

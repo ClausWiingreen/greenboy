@@ -120,5 +120,17 @@ byte compare(const byte lhs, const byte rhs, CPU::Flags &f) noexcept {
   subtract(lhs, rhs, f);
   return lhs;
 }
+byte increment(const byte lhs, const byte rhs, CPU::Flags &f) noexcept {
+  auto carry = f.carry;
+  auto result = add(lhs, rhs, f);
+  f.carry = carry;
+  return result;
+}
+byte decrement(const byte lhs, const byte rhs, CPU::Flags &f) noexcept {
+  auto carry = f.carry;
+  auto result = subtract(lhs, rhs, f);
+  f.carry = carry;
+  return result;
+}
 } // namespace operations
 } // namespace greenboy::instructions

@@ -1133,4 +1133,81 @@ TEST(ArithemeticInstruction, CP_HL) {
   EXPECT_FALSE(registers.f.half_carry);
   EXPECT_TRUE(registers.f.carry);
 }
+
+TEST(ArithemeticInstruction, INC_A) {
+  ByteArithmeticOperation instruction{
+      ByteRegister::a(), ConstantByte::from(byte{1}), operations::increment};
+
+  CPU::RegisterSet registers{};
+  registers.a = byte{0xff};
+  MockMemoryBus memory;
+
+  auto time_passed = instruction.execute(registers, memory);
+
+  EXPECT_EQ(time_passed, cycles{0});
+  EXPECT_EQ(registers.a, byte{0x00});
+  EXPECT_TRUE(registers.f.zero);
+  EXPECT_FALSE(registers.f.negate);
+  EXPECT_TRUE(registers.f.half_carry);
+  EXPECT_FALSE(registers.f.carry);
+}
+TEST(ArithemeticInstruction, INC_HL) {
+  ByteArithmeticOperation instruction{IndirectByte::from(WordRegister::hl()),
+                                      ConstantByte::from(byte{1}),
+                                      operations::increment};
+
+  CPU::RegisterSet registers{};
+  registers.h = byte{0x40};
+  registers.l = byte{0x00};
+  MockMemoryBus memory;
+
+  EXPECT_CALL(memory, read(word{0x4000})).WillOnce(Return(byte{0x50}));
+  EXPECT_CALL(memory, write(word{0x4000}, byte{0x51}));
+
+  auto time_passed = instruction.execute(registers, memory);
+
+  EXPECT_EQ(time_passed, cycles{4});
+  EXPECT_FALSE(registers.f.zero);
+  EXPECT_FALSE(registers.f.negate);
+  EXPECT_FALSE(registers.f.half_carry);
+  EXPECT_FALSE(registers.f.carry);
+}
+TEST(ArithemeticInstruction, DEC_L) {
+  ByteArithmeticOperation instruction{
+      ByteRegister::l(), ConstantByte::from(byte{1}), operations::decrement};
+
+  CPU::RegisterSet registers{};
+  registers.l = byte{0x01};
+  MockMemoryBus memory;
+
+  auto time_passed = instruction.execute(registers, memory);
+
+  EXPECT_EQ(time_passed, cycles{0});
+  EXPECT_EQ(registers.l, byte{0x00});
+  EXPECT_TRUE(registers.f.zero);
+  EXPECT_TRUE(registers.f.negate);
+  EXPECT_FALSE(registers.f.half_carry);
+  EXPECT_FALSE(registers.f.carry);
+}
+TEST(ArithemeticInstruction, DEC_HL) {
+  ByteArithmeticOperation instruction{IndirectByte::from(WordRegister::hl()),
+                                      ConstantByte::from(byte{1}),
+                                      operations::decrement};
+
+  CPU::RegisterSet registers{};
+  registers.h = byte{0x40};
+  registers.l = byte{0x00};
+  MockMemoryBus memory;
+
+  EXPECT_CALL(memory, read(word{0x4000})).WillOnce(Return(byte{0x00}));
+  EXPECT_CALL(memory, write(word{0x4000}, byte{0xff}));
+
+  auto time_passed = instruction.execute(registers, memory);
+
+  EXPECT_EQ(time_passed, cycles{4});
+  EXPECT_FALSE(registers.f.zero);
+  EXPECT_TRUE(registers.f.negate);
+  EXPECT_TRUE(registers.f.half_carry);
+  EXPECT_FALSE(registers.f.carry);
+}
 } // namespace
