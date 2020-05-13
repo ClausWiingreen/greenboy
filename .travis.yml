@@ -20,5 +20,8 @@ install:
 before_script:
 - mkdir build && cd build
 - cmake -DGREENBOY_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug ..
-script: make coverage
+script: 
+  - build-wrapper-linux-x86-64 --out-dir bw-output make
+  - make coverage
+  - sonar-scanner -Dsonar.cfamily.build-wrapper-output=bw-output
 after_success: coveralls-lcov coverage.info
