@@ -34,7 +34,6 @@ For pushing to upstream:
 
 	git subtree push --prefix=cmake git@github.com:bilke/cmake-modules.git master
 
-
 How to Use
 ----------
 
@@ -47,7 +46,6 @@ You might also want the extra automatic features/fixes included with the
 modules, for that, just add another line following the first one:
 
 	include(UseBackportedModules)
-
 
 Licenses
 --------
@@ -72,6 +70,5 @@ Important License Note!
 If you find this file inside of another project, rather at the top-level
 directory, you're in a separate project that is making use of these modules.
 That separate project can (and probably does) have its own license specifics.
-
 
 [1]: http://github.com/apenwarr/git-subtree  "Git Subtree master"
