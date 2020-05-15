@@ -4,17 +4,24 @@ sudo: required
 compiler: gcc
 branches:
   only:
-    - develop
-    - master
+  - develop
+  - master
 addons:
+  sonarcloud:
+    organization: "clauswiingreen"
+    token:
+      secure: "CKJvVupN67sffTRkJnkcmDP+8nYLp9Il1QrGIfh1FmQsgS+WGrzj/Nae3BRMfWtqTsn8ZGdIrokoDi9OM02aNesuwe2a6GVaQwEHCAl9Ok81v/1JPaGcjtONP907H1z4EG1OA55IDfUtXUjGyCSFKNYvcxfF3golMRFKnO4x9w7EmbnP/W30kLpVZQVAU7gbTVf7vVw1zHBEt+aCvdY6wP0L/M11EEtQXHO6wX0HcQE56+8fG1e4eehSOcmMWOjenNeYxwLU9WVZtufUTG+10eLUK4r8KZ2JcrBIfI1B41wJqaWuUd1uss0qpRIdpe/F5ljrV+xe+p2+6ZkcSiNmhnyHj+rlJynWjt4En6TJpq3L/U5dY4BUnXekVM1Y+IqUr4k2jg/J4ICFVOc+9+NYPkU7e5WjiCF2J3hz7BaG6QNfEgKODpVnRHxb9L6IhWm379CeswB0BAsYEakn3kFv8I9S4/OaFqT3gts4KmSPkvdYxhIdRmkFP6hzuJoTFFVqRnau8vkrwwuwzlbiF+nJ/IuJ3zLxY+YS6a8tLqKWsAQVdj7EkkwliYnt9RRsRYn8SyJmq+mOwZ7pqFWbeOlaDCC0j3t4u8jciRrb03ZfKUvVDDfp5/LtZH7A1a1qEFVT6NIOyFuU/8ISYH0tSaWskwfL5h6AYLUECmsr8D3aQLw="
   apt:
     packages:
-      - lcov
-install: 
-  - pip install --user cpp-coveralls
-  - gem install coveralls-lcov
+    - lcov
+install:
+- pip install --user cpp-coveralls
+- gem install coveralls-lcov
 before_script:
-  - mkdir build && cd build
-  - cmake -DGREENBOY_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug ..
-script: make coverage
+- mkdir build && cd build
+- cmake -DGREENBOY_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug ..
+script: 
+  - build-wrapper-linux-x86-64 --out-dir bw-output make
+  - make coverage
+  - sonar-scanner -Dsonar.cfamily.build-wrapper-output=bw-output
 after_success: coveralls-lcov coverage.info
