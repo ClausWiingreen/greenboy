@@ -2,7 +2,7 @@ function(set_warnings project)
   option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" TRUE)
 
   set(MSVC_WARNINGS 
-    /W4
+    /W3
     /w14242
     /w14254
     /w14263

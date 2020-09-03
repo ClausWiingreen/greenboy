@@ -1,5 +1,5 @@
 #pragma once
-
+/*
 #include "byte_access.hpp"
 
 #include <memory>
@@ -54,3 +54,4 @@ inline std::shared_ptr<ByteRegister> ByteRegister::a() noexcept {
   return instance;
 }
 } // namespace greenboy::data_access
+*/
