@@ -153,8 +153,7 @@ TEST(ByteLoad, LD_A_ffC) {
   MockMemoryBus memory;
   EXPECT_CALL(memory, read(word{0xff95})).WillOnce(Return(byte{0xf8}));
 
-  auto time_passed =
-      load<A, Indirect<Double<Constant<0xff>, C>>>(registers, memory);
+  auto time_passed = load<A, Indirect<Double<Constant<0xff>, C>>>(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.a = byte{0xf8};
@@ -170,8 +169,7 @@ TEST(ByteLoad, LD_ffC_A) {
   MockMemoryBus memory;
   EXPECT_CALL(memory, write(word{0xff9f}, byte{0x43}));
 
-  auto time_passed =
-      load<Indirect<Double<Constant<0xff>, C>>, A>(registers, memory);
+  auto time_passed = load<Indirect<Double<Constant<0xff>, C>>, A>(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.a = byte{0x43};
@@ -188,8 +186,7 @@ TEST(ByteLoad, LD_A_ff34) {
   EXPECT_CALL(memory, read(word{0x4a22})).WillOnce(Return(byte{0x34}));
   EXPECT_CALL(memory, read(word{0xff34})).WillOnce(Return(byte{0xf8}));
 
-  auto time_passed =
-      load<A, Indirect<Double<Constant<0xff>, Immediate<>>>>(registers, memory);
+  auto time_passed = load<A, Indirect<Double<Constant<0xff>, Immediate<>>>>(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.a = byte{0xf8};
@@ -207,8 +204,7 @@ TEST(ByteLoad, LD_ff34_A) {
   EXPECT_CALL(memory, read(word{0x4a22})).WillOnce(Return(byte{0x34}));
   EXPECT_CALL(memory, write(word{0xff34}, byte{0x43}));
 
-  auto time_passed =
-      load<Indirect<Double<Constant<0xff>, Immediate<>>>, A>(registers, memory);
+  auto time_passed = load<Indirect<Double<Constant<0xff>, Immediate<>>>, A>(registers, memory);
 
   CPU::RegisterSet expected_register_state{};
   expected_register_state.a = byte{0x43};

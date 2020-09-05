@@ -38,43 +38,6 @@ template <typename T> constexpr bool is_writeable_v = is_writeable<T>::value;
 namespace instructions {
 
 namespace registers {
-struct RegisterB {
-  static constexpr byte &get(CPU::RegisterSet &registers) {
-    return registers.b;
-  }
-};
-struct RegisterC {
-  static constexpr byte &get(CPU::RegisterSet &registers) {
-    return registers.c;
-  }
-};
-struct RegisterD {
-  static constexpr byte &get(CPU::RegisterSet &registers) {
-    return registers.d;
-  }
-};
-
-struct RegisterE {
-  static constexpr byte &get(CPU::RegisterSet &registers) {
-    return registers.e;
-  }
-};
-struct RegisterH {
-  static constexpr byte &get(CPU::RegisterSet &registers) {
-    return registers.h;
-  }
-};
-struct RegisterL {
-  static constexpr byte &get(CPU::RegisterSet &registers) {
-    return registers.l;
-  }
-};
-struct RegisterA {
-  static constexpr byte &get(CPU::RegisterSet &registers) {
-    return registers.a;
-  }
-};
-
 enum class Reg { B, C, D, E, H, L, A, BC, DE, HL, AF, SP };
 
 template <Reg Name> struct Register {
@@ -156,25 +119,24 @@ using SP = Register<Reg::SP>;
 
 } // namespace registers
 
-template <class ValueType = byte> struct Immediate;
-
-template <> struct Immediate<byte> {
-  using value_type = byte;
+template <class ValueType = byte> struct Immediate {
+  using value_type = typename ValueType;
   static byte read(CPU::RegisterSet &registers, MemoryBus &memory) {
-    return memory.read(registers.pc++);
+    if constexpr (std::is_same_v<value_type, word>) {
+      auto low = memory.read(registers.pc++);
+      auto high = memory.read(registers.pc++);
+      return to_word(high, low);
+    } else {
+      return memory.read(registers.pc++);
+    }
   }
-  static constexpr cycles access_time() { return cycles{4}; }
-};
-
-template <> struct Immediate<word> {
-  using value_type = word;
-  static word read(CPU::RegisterSet &registers, MemoryBus &memory) {
-    auto low = memory.read(registers.pc++);
-    auto high = memory.read(registers.pc++);
-
-    return to_word(high, low);
+  static constexpr cycles access_time() {
+    if constexpr (std::is_same_v<value_type, word>) {
+      return cycles{8};
+    } else {
+      return cycles{4};
+    }
   }
-  static constexpr cycles access_time() { return cycles{8}; }
 };
 
 template <class Register, class ValueType = byte> struct Indirect {
