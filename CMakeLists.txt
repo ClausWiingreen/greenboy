@@ -20,60 +20,21 @@ set_warnings(greenboy_warnings)
 
 list(APPEND GREENBOY_HEADERS
   ${CMAKE_SOURCE_DIR}/include/greenboy/cpu.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/fetch_execute_cpu.hpp
   ${CMAKE_SOURCE_DIR}/include/greenboy/gameboy.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/instruction.hpp
   ${CMAKE_SOURCE_DIR}/include/greenboy/memory_bus.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/opcode_translator.hpp
   ${CMAKE_SOURCE_DIR}/include/greenboy/timing.hpp
   ${CMAKE_SOURCE_DIR}/include/greenboy/types.hpp
   ${CMAKE_SOURCE_DIR}/include/greenboy/video.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/byte_access.hpp 
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/byte_register.hpp 
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/constant_byte.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/decrementing_word.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/delayed_word_access.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/double_byte_word.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/immediate_byte.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/incrementing_word.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/indirect_byte.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/indirect_word.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/offsat_word.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/pre_decrementing_word.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/word_access.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/data_access/word_register.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/instructions/byte_arithmetic_operation.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/instructions/byte_load.hpp
-  ${CMAKE_SOURCE_DIR}/include/greenboy/instructions/word_load.hpp
+  ${CMAKE_SOURCE_DIR}/include/greenboy/instructions/instructions.hpp
  )
 
 list(APPEND GREENBOY_SOURCES 
   ${CMAKE_SOURCE_DIR}/src/greenboy/cpu.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/fetch_execute_cpu.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/gameboy.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/instruction.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/memory_bus.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/opcode_translator.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/timing.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/types.cpp
   ${CMAKE_SOURCE_DIR}/src/greenboy/video.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/byte_access.cpp 
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/byte_register.cpp 
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/constant_byte.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/decrementing_word.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/delayed_word_access.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/double_byte_word.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/immediate_byte.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/incrementing_word.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/indirect_byte.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/indirect_word.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/offsat_word.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/pre_decrementing_word.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/word_access.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/data_access/word_register.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/instructions/byte_arithmetic_operation.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/instructions/byte_load.cpp
-  ${CMAKE_SOURCE_DIR}/src/greenboy/instructions/word_load.cpp
 )
 
 option(ENABLE_CPPCHECK "Enable the CppCheck static analyser" OFF)

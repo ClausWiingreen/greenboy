@@ -13,15 +13,8 @@ macro(greenboy_add_test TESTNAME)
     list(APPEND TestLibraries ${TESTNAME})
 endmacro()
 
-greenboy_add_test(DataAccess      greenboy/data_access.cpp)
-greenboy_add_test(FetchExecuteCPU greenboy/fetch_execute_cpu.cpp)
 greenboy_add_test(Gameboy         greenboy/gameboy.cpp)
-greenboy_add_test(Instructions    greenboy/instructions.cpp)
-
-# do not include intergration tests in coverage
-if(NOT ${GREENBOY_COVERAGE})
-  greenboy_add_test(IndividualInstructions greenboy/individual_instructions.cpp)
-endif()
+greenboy_add_test(IndividualInstructions greenboy/individual_instructions.cpp)
 
 if(GREENBOY_COVERAGE)
   setup_target_for_coverage_lcov(
