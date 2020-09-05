@@ -181,7 +181,7 @@ template <class Register, class ValueType = byte> struct Indirect {
   using value_type = ValueType;
   static value_type read(CPU::RegisterSet &registers, MemoryBus &memory) {
     static_assert(is_readable_v<Register>);
-    static_assert(std::is_same_v<Register::value_type, word>);
+    static_assert(std::is_same_v<typename Register::value_type, word>);
 
     auto address = Register::read(registers, memory);
     if constexpr (std::is_same_v<value_type, word>) {
@@ -195,7 +195,7 @@ template <class Register, class ValueType = byte> struct Indirect {
   static void write(value_type value, CPU::RegisterSet &registers,
                     MemoryBus &memory) {
     static_assert(is_readable_v<Register>);
-    static_assert(std::is_same_v<Register::value_type, word>);
+    static_assert(std::is_same_v<typename Register::value_type, word>);
 
     auto address = Register::read(registers, memory);
     if constexpr (std::is_same_v<value_type, word>) {
@@ -210,7 +210,7 @@ template <class Register, class ValueType = byte> struct Indirect {
   }
 };
 
-template <class Data, class = Data::value_type> struct Increment;
+template <class Data, class = typename Data::value_type> struct Increment;
 
 template <class Data> struct Increment<Data, word> {
   using value_type = word;
@@ -225,7 +225,7 @@ template <class Data> struct Increment<Data, word> {
   static constexpr cycles access_time() { return Data::access_time() * 2; }
 };
 
-template <class Data, class = Data::value_type> struct Decrement;
+template <class Data, class = typename Data::value_type> struct Decrement;
 
 template <class Data> struct Decrement<Data, word> {
   using value_type = word;
@@ -293,7 +293,8 @@ template <typename Destination, typename Source>
 inline cycles load(CPU::RegisterSet &registers, MemoryBus &memory) {
   static_assert(is_readable_v<Source>);
   static_assert(is_writeable_v<Destination>);
-  static_assert(std::is_same_v<Source::value_type, Destination::value_type>);
+  static_assert(std::is_same_v<typename Source::value_type,
+                               typename Destination::value_type>);
 
   auto value = Source::read(registers, memory);
   Destination::write(value, registers, memory);
@@ -305,9 +306,10 @@ inline cycles add(CPU::RegisterSet &registers, MemoryBus &memory) {
   static_assert(is_readable_v<LHS>);
   static_assert(is_readable_v<RHS>);
   static_assert(is_writeable_v<LHS>);
-  static_assert(std::is_same_v<LHS::value_type, RHS::value_type>);
+  static_assert(
+      std::is_same_v<typename LHS::value_type, typename RHS::value_type>);
 
-  if constexpr (std::is_same_v<LHS::value_type, word>) {
+  if constexpr (std::is_same_v<typename LHS::value_type, word>) {
     auto lhs = LHS::read(registers, memory);
     auto rhs = RHS::read(registers, memory);
     auto result = lhs + rhs;
@@ -328,7 +330,7 @@ inline cycles add(CPU::RegisterSet &registers, MemoryBus &memory) {
     registers.f.half_carry = (carry_bits & 0x10) != 0;
     registers.f.negate = false;
 
-    LHS::write(byte{result}, registers, memory);
+    LHS::write(static_cast<byte>(result), registers, memory);
   }
   return LHS::access_time() * 2 + RHS::access_time();
 }
@@ -338,7 +340,8 @@ inline cycles add_with_carry(CPU::RegisterSet &registers, MemoryBus &memory) {
   static_assert(is_readable_v<LHS>);
   static_assert(is_readable_v<RHS>);
   static_assert(is_writeable_v<LHS>);
-  static_assert(std::is_same_v<LHS::value_type, RHS::value_type>);
+  static_assert(
+      std::is_same_v<typename LHS::value_type, typename RHS::value_type>);
 
   auto lhs = to_integer<int>(LHS::read(registers, memory));
   auto rhs = to_integer<int>(RHS::read(registers, memory));
@@ -350,7 +353,7 @@ inline cycles add_with_carry(CPU::RegisterSet &registers, MemoryBus &memory) {
   registers.f.half_carry = (carry_bits & 0x10) != 0;
   registers.f.negate = false;
 
-  LHS::write(byte{result}, registers, memory);
+  LHS::write(static_cast<byte>(result), registers, memory);
   return LHS::access_time() * 2 + RHS::access_time();
 }
 
@@ -359,7 +362,8 @@ inline cycles subtract(CPU::RegisterSet &registers, MemoryBus &memory) {
   static_assert(is_readable_v<LHS>);
   static_assert(is_readable_v<RHS>);
   static_assert(is_writeable_v<LHS>);
-  static_assert(std::is_same_v<LHS::value_type, RHS::value_type>);
+  static_assert(
+      std::is_same_v<typename LHS::value_type, typename RHS::value_type>);
 
   auto lhs = to_integer<int>(LHS::read(registers, memory));
   auto rhs = to_integer<int>(RHS::read(registers, memory));
@@ -371,7 +375,7 @@ inline cycles subtract(CPU::RegisterSet &registers, MemoryBus &memory) {
   registers.f.half_carry = (carry_bits & 0x10) != 0;
   registers.f.negate = true;
 
-  LHS::write(byte{result}, registers, memory);
+  LHS::write(static_cast<byte>(result), registers, memory);
   return LHS::access_time() * 2 + RHS::access_time();
 }
 
@@ -381,7 +385,8 @@ inline cycles subtract_with_carry(CPU::RegisterSet &registers,
   static_assert(is_readable_v<LHS>);
   static_assert(is_readable_v<RHS>);
   static_assert(is_writeable_v<LHS>);
-  static_assert(std::is_same_v<LHS::value_type, RHS::value_type>);
+  static_assert(
+      std::is_same_v<typename LHS::value_type, typename RHS::value_type>);
 
   auto lhs = to_integer<int>(LHS::read(registers, memory));
   auto rhs = to_integer<int>(RHS::read(registers, memory));
@@ -393,7 +398,7 @@ inline cycles subtract_with_carry(CPU::RegisterSet &registers,
   registers.f.half_carry = (carry_bits & 0x10) != 0;
   registers.f.negate = true;
 
-  LHS::write(byte{result}, registers, memory);
+  LHS::write(static_cast<byte>(result), registers, memory);
   return LHS::access_time() * 2 + RHS::access_time();
 }
 
@@ -402,7 +407,8 @@ inline cycles bitwise_and(CPU::RegisterSet &registers, MemoryBus &memory) {
   static_assert(is_readable_v<LHS>);
   static_assert(is_readable_v<RHS>);
   static_assert(is_writeable_v<LHS>);
-  static_assert(std::is_same_v<LHS::value_type, RHS::value_type>);
+  static_assert(
+      std::is_same_v<typename LHS::value_type, typename RHS::value_type>);
 
   auto lhs = to_integer<int>(LHS::read(registers, memory));
   auto rhs = to_integer<int>(RHS::read(registers, memory));
@@ -413,7 +419,7 @@ inline cycles bitwise_and(CPU::RegisterSet &registers, MemoryBus &memory) {
   registers.f.half_carry = true;
   registers.f.negate = false;
 
-  LHS::write(byte{result}, registers, memory);
+  LHS::write(static_cast<byte>(result), registers, memory);
   return LHS::access_time() * 2 + RHS::access_time();
 }
 
@@ -422,7 +428,8 @@ inline cycles bitwise_or(CPU::RegisterSet &registers, MemoryBus &memory) {
   static_assert(is_readable_v<LHS>);
   static_assert(is_readable_v<RHS>);
   static_assert(is_writeable_v<LHS>);
-  static_assert(std::is_same_v<LHS::value_type, RHS::value_type>);
+  static_assert(
+      std::is_same_v<typename LHS::value_type, typename RHS::value_type>);
 
   auto lhs = to_integer<int>(LHS::read(registers, memory));
   auto rhs = to_integer<int>(RHS::read(registers, memory));
@@ -433,7 +440,7 @@ inline cycles bitwise_or(CPU::RegisterSet &registers, MemoryBus &memory) {
   registers.f.half_carry = false;
   registers.f.negate = false;
 
-  LHS::write(byte{result}, registers, memory);
+  LHS::write(static_cast<byte>(result), registers, memory);
   return LHS::access_time() * 2 + RHS::access_time();
 }
 
@@ -442,7 +449,8 @@ inline cycles bitwise_xor(CPU::RegisterSet &registers, MemoryBus &memory) {
   static_assert(is_readable_v<LHS>);
   static_assert(is_readable_v<RHS>);
   static_assert(is_writeable_v<LHS>);
-  static_assert(std::is_same_v<LHS::value_type, RHS::value_type>);
+  static_assert(
+      std::is_same_v<typename LHS::value_type, typename RHS::value_type>);
 
   auto lhs = to_integer<int>(LHS::read(registers, memory));
   auto rhs = to_integer<int>(RHS::read(registers, memory));
@@ -453,7 +461,7 @@ inline cycles bitwise_xor(CPU::RegisterSet &registers, MemoryBus &memory) {
   registers.f.half_carry = false;
   registers.f.negate = false;
 
-  LHS::write(byte{result}, registers, memory);
+  LHS::write(static_cast<byte>(result), registers, memory);
   return LHS::access_time() * 2 + RHS::access_time();
 }
 
@@ -462,7 +470,8 @@ inline cycles compare(CPU::RegisterSet &registers, MemoryBus &memory) {
   static_assert(is_readable_v<LHS>);
   static_assert(is_readable_v<RHS>);
   static_assert(is_writeable_v<LHS>);
-  static_assert(std::is_same_v<LHS::value_type, RHS::value_type>);
+  static_assert(
+      std::is_same_v<typename LHS::value_type, typename RHS::value_type>);
 
   auto lhs = to_integer<int>(LHS::read(registers, memory));
   auto rhs = to_integer<int>(RHS::read(registers, memory));
@@ -478,7 +487,7 @@ inline cycles compare(CPU::RegisterSet &registers, MemoryBus &memory) {
 
 template <typename Register>
 cycles increment(CPU::RegisterSet &registers, MemoryBus &memory) noexcept {
-  if constexpr (std::is_same_v<Register::value_type, byte>) {
+  if constexpr (std::is_same_v<typename Register::value_type, byte>) {
     auto carry = registers.f.carry;
     auto result = add<Register, Constant<1>>(registers, memory);
     registers.f.carry = carry;
@@ -491,7 +500,7 @@ cycles increment(CPU::RegisterSet &registers, MemoryBus &memory) noexcept {
 
 template <typename Register>
 cycles decrement(CPU::RegisterSet &registers, MemoryBus &memory) noexcept {
-  if constexpr (std::is_same_v<Register::value_type, byte>) {
+  if constexpr (std::is_same_v<typename Register::value_type, byte>) {
     auto carry = registers.f.carry;
     auto result = subtract<Register, Constant<1>>(registers, memory);
     registers.f.carry = carry;
@@ -505,7 +514,7 @@ cycles decrement(CPU::RegisterSet &registers, MemoryBus &memory) noexcept {
 template <typename Register>
 cycles push(CPU::RegisterSet &registers, MemoryBus &memory) noexcept {
   static_assert(is_readable_v<Register>);
-  static_assert(std::is_same_v<Register::value_type, word>);
+  static_assert(std::is_same_v<typename Register::value_type, word>);
 
   auto value = Register::read(registers, memory);
   auto low = low_byte(value);
@@ -518,8 +527,8 @@ cycles push(CPU::RegisterSet &registers, MemoryBus &memory) noexcept {
 template <typename Register>
 cycles pop(CPU::RegisterSet &registers, MemoryBus &memory) noexcept {
   static_assert(is_writeable_v<Register>);
-  static_assert(std::is_same_v<Register::value_type, word>);
-  ;
+  static_assert(std::is_same_v<typename Register::value_type, word>);
+
   auto low = memory.read(registers.sp++);
   auto high = memory.read(registers.sp++);
 
