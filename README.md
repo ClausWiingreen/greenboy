@@ -15,11 +15,11 @@ The project is still in very early development.
 
 ## Directory Overview
 
-| Directory           | Purpose                                         |
-|---------------------|-------------------------------------------------|
-| `/docs/archtecture` | Technical decisions and architectural reasoning |
-| `/docs/milestones`  | Project outcomes and long-term progress         |
-| `/docs/tasks`       | Concrete implementation work                    |
+| Directory            | Purpose                                         |
+|----------------------|-------------------------------------------------|
+| `/docs/architecture` | Technical decisions and architectural reasoning |
+| `/docs/milestones`   | Project outcomes and long-term progress         |
+| `/docs/tasks`        | Concrete implementation work                    |
 
 # Documentation
 
